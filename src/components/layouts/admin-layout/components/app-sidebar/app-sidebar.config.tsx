@@ -1,24 +1,64 @@
 import type { NavItem } from '@/types';
 import { ROUTES } from '@/utils/routes';
 import {
-  ArrowLeftRightIcon,
-  CircleDollarSignIcon,
+  BookOpenIcon,
+  CalendarIcon,
+  FolderIcon,
   LayoutDashboardIcon,
-  MenuIcon,
+  PackageIcon,
   SettingsIcon,
   User2Icon,
   Users2Icon,
-  Wallet2Icon,
   WrenchIcon,
 } from 'lucide-react';
 
 export const navItems = (): NavItem[] => [
   {
-    title: 'Home',
+    title: 'Dashboard',
     url: ROUTES.ADMIN_DASHBOARD,
     icon: LayoutDashboardIcon,
     isActive: false,
     shortcut: ['h', 'h'],
+    items: [],
+  },
+  {
+    title: 'Categories',
+    url: ROUTES.ADMIN_CATEGORIES,
+    icon: FolderIcon,
+    isActive: false,
+    shortcut: ['c', 'c'],
+    items: [],
+  },
+  {
+    title: 'Products',
+    url: ROUTES.ADMIN_PRODUCTS,
+    icon: PackageIcon,
+    isActive: false,
+    shortcut: ['p', 'p'],
+    items: [],
+  },
+  {
+    title: 'Leads',
+    url: ROUTES.ADMIN_LEADS,
+    icon: Users2Icon,
+    isActive: false,
+    shortcut: ['l', 'l'],
+    items: [],
+  },
+  {
+    title: 'Bookings',
+    url: ROUTES.ADMIN_BOOKINGS,
+    icon: CalendarIcon,
+    isActive: false,
+    shortcut: ['b', 'b'],
+    items: [],
+  },
+  {
+    title: 'Blog',
+    url: ROUTES.ADMIN_BLOG,
+    icon: BookOpenIcon,
+    isActive: false,
+    shortcut: ['g', 'g'],
     items: [],
   },
   {
@@ -32,7 +72,7 @@ export const navItems = (): NavItem[] => [
         title: 'Profile',
         url: ROUTES.ADMIN_ME,
         icon: User2Icon,
-        shortcut: ['p', 'p'],
+        shortcut: ['p', 'r'],
       },
       {
         title: 'System',
