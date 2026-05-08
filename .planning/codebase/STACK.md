@@ -1,148 +1,161 @@
 # Technology Stack
 
-**Analysis Date:** 2026-05-08
+**Analysis Date:** 2026-05-09
 
 ## Languages
 
 **Primary:**
-- TypeScript 6.0.3 - All source code in `src/`
-- React 19.2.5 - UI framework
+- TypeScript 6.0.3 - Full codebase including frontend components, utilities, and configurations
+- JSX/TSX - React components throughout `src/components/` and `src/app/`
 
 **Secondary:**
-- JavaScript - Build configuration files
-- CSS/Tailwind - Styling via Tailwind CSS
+- JavaScript - Configuration files (postcss.config.mjs, next.config.ts)
+- CSS - Tailwind utilities, custom styles in `src/styles/`
 
 ## Runtime
 
 **Environment:**
-- Node.js 20.17.0 (specified in `.github/workflows/lint.yml`)
+- Node.js (version not explicitly specified, inferred from Next.js 16.2.4 compatibility)
 
 **Package Manager:**
-- pnpm (latest) - Configured in `.github/workflows/lint.yml` via corepack
-- Lockfile: pnpm-lock.yaml present at repository root
+- pnpm - Primary package manager
+- Lockfile: `pnpm-lock.yaml` (present)
 
 ## Frameworks
 
 **Core:**
-- Next.js 16.2.4 - React metaframework with App Router
+- Next.js 16.2.4 - Full-stack React framework with App Router (ES2017 target)
 - React 19.2.5 - UI library
-- React DOM 19.2.5 - React rendering
+- React DOM 19.2.5 - DOM rendering
 
-**UI/Components:**
-- Radix UI (multiple packages v1.1-2.2) - Unstyled, accessible component primitives
-  - Dialog, Accordion, Avatar, Checkbox, Dropdown, Select, Tabs, etc.
+**UI Component Library:**
+- Radix UI (multiple components v1.x-v2.x):
+  - `@radix-ui/react-accordion` 1.2.12
+  - `@radix-ui/react-alert-dialog` 1.1.15
+  - `@radix-ui/react-avatar` 1.1.11
+  - `@radix-ui/react-checkbox` 1.3.3
+  - `@radix-ui/react-dialog` 1.1.15
+  - `@radix-ui/react-dropdown-menu` 2.1.16
+  - `@radix-ui/react-label` 2.1.8
+  - `@radix-ui/react-menubar` 1.1.16
+  - `@radix-ui/react-navigation-menu` 1.2.14
+  - `@radix-ui/react-popover` 1.1.15
+  - `@radix-ui/react-radio-group` 1.3.8
+  - `@radix-ui/react-select` 2.2.6
+  - `@radix-ui/react-slider` 1.3.6
+  - `@radix-ui/react-tabs` 1.1.13
+  - `@radix-ui/react-tooltip` 1.2.8
+
+**Styling:**
 - Tailwind CSS 4.2.4 - Utility-first CSS framework
-- Class Variance Authority 0.7.1 - CSS variant generation
+- `@tailwindcss/postcss` 4.2.4 - PostCSS plugin for Tailwind
+- PostCSS 8.5.12 - CSS transformations
 
-**State Management:**
-- Zustand 5.0.12 - Lightweight state management (`src/stores/`)
-- auto-zustand-selectors-hook 3.0.1 - Helper for Zustand selector hooks
+**Data Fetching & State Management:**
+- `@tanstack/react-query` 5.100.6 - Server state management (configured in `src/components/providers/QueryClientProvider`)
+- Axios 1.15.2 - HTTP client (custom instance in `src/api/http-instance.ts`)
+- Zustand 5.0.12 - Client state management
+- `auto-zustand-selectors-hook` 3.0.1 - Selector functions for Zustand stores
 
-**Data Fetching:**
-- TanStack React Query 5.100.6 - Server state management (`src/components/providers/QueryClientProvider/`)
-- Axios 1.15.2 - HTTP client (`src/api/axios.ts`, `src/api/interceptors.ts`)
+**Forms:**
+- React Hook Form 7.74.0 - Form state management
+- `@hookform/resolvers` 5.2.2 - Validation resolvers for React Hook Form
+- Zod 4.4.3 - TypeScript-first schema validation
 
 **Real-time Communication:**
-- Socket.IO Client 4.8.3 - WebSocket communication (`src/lib/socket.ts`, `src/hooks/useSocket.ts`)
+- Socket.IO Client 4.8.3 - WebSocket client for real-time communication (configured in `src/lib/socket.ts` and `src/hooks/use-socket.ts`)
 
-**Testing:**
-- Biome 2.4.13 - Linter and formatter (configured in `biome.json`)
-- (React Query DevTools commented out in `src/components/providers/QueryClientProvider/`)
-
-**Build/Dev:**
-- Turbopack - Used via `next dev --turbopack`
-- PostCSS 8.5.12 - CSS processing
-- Tailwind CSS PostCSS Plugin 4.2.4 - Tailwind CSS as PostCSS plugin
-- SVGR/Webpack 8.1.0 - SVG to React component conversion
-- TypeScript 6.0.3 - Type checking
-
-**Development/Git:**
-- Husky 9.1.7 - Git hooks
-- lint-staged 16.4.0 - Run linters on staged files
-- Commitlint 20.5.3 - Commit message linting
-- Rimraf 6.1.3 - Cross-platform file deletion
-
-## Key Dependencies
-
-**Critical:**
-- next 16.2.4 - Server/client framework, routing, rendering
-- react 19.2.5 - Core UI rendering
-- @tanstack/react-query 5.100.6 - Server state and caching
-- zustand 5.0.12 - Client state management
-- axios 1.15.2 - API communication with request/response interceptors
-- socket.io-client 4.8.3 - WebSocket client for real-time updates
-
-**UI/Styling:**
-- tailwindcss 4.2.4 - Utility CSS framework
-- @tailwindcss/postcss 4.2.4 - Tailwind CSS via PostCSS
-- @radix-ui/* (13 packages) - Accessible, headless components
-- lucide-react 1.14.0 - Icon library
-- class-variance-authority 0.7.1 - CSS class variant generation
-- clsx 2.1.1 - Conditional className utility
-- tailwind-merge 3.5.0 - Merge Tailwind classes safely
+**Animation:**
+- Framer Motion 12.38.0 - Animation library
+- Embla Carousel React 8.6.0 - Carousel component
 
 **Utilities:**
-- date-fns 4.1.0 - Date manipulation
-- dayjs 1.11.20 - Date library
-- decimal.js 10.6.0 - Arbitrary precision decimal arithmetic
-- js-cookie 3.0.5 - Cookie management (`src/lib/cookie.ts`)
-- react-hook-form 7.74.0 - Form state management
-- embla-carousel-react 8.6.0 - Carousel component
-- sonner 2.0.7 - Toast notifications
-- next-nprogress-bar 2.4.7 - Top progress bar
-- vaul 1.1.2 - Drawer/modal component
-- cmdk 1.1.1 - Command palette
-- react-day-picker 9.14.0 - Date picker
+- Lucide React 1.14.0 - Icon library
+- Date-fns 4.1.0 - Date utilities
+- Dayjs 1.11.20 - Lightweight date library
+- Decimal.js 10.6.0 - Arbitrary precision decimal arithmetic
+- js-cookie 3.0.5 - Cookie management
+- qs 6.15.1 - Query string parser/serializer
+- react-day-picker 9.14.0 - Date picker component
+- react-dropzone 15.0.0 - File upload handling
+- react-medium-image-zoom 5.4.5 - Image zoom functionality
+- react-number-format 5.4.5 - Number formatting
+- Clsx 2.1.1 - Conditional className utility
+- Tailwind Merge 3.5.0 - Merge Tailwind classes
+- tw-animate-css 1.4.0 - Animation utilities
+- Vaul 1.1.2 - Dialog drawer component
+- Class Variance Authority 0.7.1 - CSS class variants
+- Sonner 2.0.7 - Toast notifications
+- Cmdk 1.1.1 - Command menu/palette
+- Kbar 0.1.0-beta.48 - Command bar
+- `@mantine/hooks` 9.1.1 - Utility hooks
+- `@tanstack/match-sorter-utils` 8.19.4 - Sorting utilities
+- `@tanstack/react-table` 8.21.3 - Table library
 
-**Development/Infrastructure:**
-- typescript 6.0.3 - Type checking and compilation
-- @types/react 19.2.14 - React type definitions
-- @types/react-dom 19.2.3 - React DOM type definitions
-- @types/node 25.6.0 - Node type definitions
-- @types/js-cookie 3.0.6 - js-cookie type definitions
-- @biomejs/biome 2.4.13 - Linting and formatting
+**UI Enhancements:**
+- next-nprogress-bar 2.4.7 - Page progress bar
+- `@teispace/next-themes` 0.3.2 - Dark mode theme switcher
+
+**Testing & Development:**
+- TypeScript 6.0.3 - Static type checking
+- Biome 2.4.13 - Linting and formatting (replaces ESLint/Prettier)
+- Husky 9.1.7 - Git hooks
+- Lint-staged 16.4.0 - Run linters on staged files
+- Commitlint 20.5.3 - Commit message linting
+- `@commitlint/config-conventional` 20.5.3 - Conventional commit rules
+
+**Build Tools:**
+- Next.js Turbopack - Next.js bundler (enabled via `--turbopack` flag in dev)
 - @svgr/webpack 8.1.0 - SVG to React component conversion
+- Rimraf 6.1.3 - Cross-platform rm -rf utility
+
+**Development:**
+- `@types/node` 25.6.0 - Node.js type definitions
+- `@types/react` 19.2.14 - React type definitions
+- `@types/react-dom` 19.2.3 - React DOM type definitions
+- `@types/js-cookie` 3.0.6 - js-cookie type definitions
+- `@types/qs` 6.15.1 - qs type definitions
 
 ## Configuration
 
 **Environment:**
-- Configuration via `NEXT_PUBLIC_*` variables in `.env.example`:
-  - `NEXT_PUBLIC_APP_URL` - Application URL (default: http://localhost:3000)
-  - `NEXT_PUBLIC_API_URL` - Backend API URL (default: http://localhost:3001)
-  - `NEXT_PUBLIC_API_VERSION` - API version prefix (default: /v1)
-  - `NEXT_PUBLIC_API_PREFIX` - API route prefix (default: /api)
-  - `NEXT_PUBLIC_SOCKET_URL` - WebSocket URL (default: ws://localhost:3002)
-- Environment constants managed in `src/utils/const.ts` and `src/config/index.ts`
+- Configuration via `.env.local` (example provided in `.env.example`)
+- Public env variables prefixed with `NEXT_PUBLIC_`:
+  - `NEXT_PUBLIC_APP_URL` - Frontend application URL (default: `http://localhost:3000`)
+  - `NEXT_PUBLIC_API_URL` - Backend API URL (default: `http://localhost:3001`)
+  - `NEXT_PUBLIC_API_VERSION` - API version path (default: `/v1`)
+  - `NEXT_PUBLIC_API_PREFIX` - API prefix (default: `/api`)
+  - `NEXT_PUBLIC_SOCKET_URL` - WebSocket server URL (default: `ws://localhost:3002`)
 
 **Build:**
-- Next.js config: `next.config.ts` - Webpack SVG handling, Turbopack, standalone output
-- TypeScript: `tsconfig.json` - ES2017 target, React JSX, path aliases (@/*)
-- PostCSS: `postcss.config.mjs` - Tailwind CSS plugin
-- Tailwind: `tailwind.config.ts` - Content paths, color variables
-- Biome: `biome.json` - Linting rules, formatting options, import organization
+- `next.config.ts` - Next.js configuration with:
+  - Turbopack configuration for development
+  - Webpack SVG loader configuration for production
+  - Standalone output mode
+  - ReactStrictMode disabled
+- `tsconfig.json` - TypeScript configuration targeting ES2017
+- `biome.json` - Code formatting and linting rules
+- `tailwind.config.ts` - Tailwind CSS theme customization
+- `postcss.config.mjs` - PostCSS configuration with Tailwind plugin
 
-**Package scripts:**
-- `pnpm dev` - Development server with Turbopack
-- `pnpm build` - Production build
-- `pnpm start` - Start production server
-- `pnpm lint` - Run Biome linter
-- `pnpm lint:fix` - Fix linting issues
-- `pnpm format:check` - Check code formatting
-- `pnpm format:fix` - Fix formatting issues
-- `pnpm type-check` - TypeScript type checking
+**Code Quality:**
+- Linting: Biome with custom rules (2 space indentation, 120 character line width, single quotes)
+- Formatting: Biome formatter with trailing commas (es5), semicolons always
+- Git hooks: Husky with pre-commit linting/formatting via lint-staged
+- Commit validation: Commitlint with conventional commits
 
 ## Platform Requirements
 
 **Development:**
-- Node.js >= 18 (documented in README.md, workflow uses 20.17.0)
-- pnpm (installed via corepack)
-- Git with LF line endings (documented for Windows users)
+- Node.js (compatible with Next.js 16.2.4, recommend v18+)
+- pnpm package manager
+- Git (for Husky pre-commit hooks)
 
 **Production:**
-- Deployment target: Standalone Next.js application (`output: 'standalone'` in `next.config.ts`)
-- Supports any Node.js 20+ hosting environment
-- Requires environment variables set for API and Socket URLs
+- Next.js standalone deployment target (can run without Node.js or with minimal Node.js)
+- Backend API server at configured `NEXT_PUBLIC_API_URL`
+- WebSocket server at configured `NEXT_PUBLIC_SOCKET_URL` (optional, gracefully handles missing connection)
 
 ---
 
-*Stack analysis: 2026-05-08*
+*Stack analysis: 2026-05-09*

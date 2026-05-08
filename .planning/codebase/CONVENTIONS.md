@@ -1,91 +1,128 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-05-08
+**Analysis Date:** 2026-05-09
 
 ## Naming Patterns
 
 **Files:**
-- React components: PascalCase (e.g., `TextField.tsx`, `MainLayout/index.tsx`)
-- Non-component files: camelCase (e.g., `useAuth.ts`, `common.ts`, `utils.ts`)
-- UI components (primitive/base): lowercase with hyphens (e.g., `form.tsx`, `radio-group.tsx`, `dropdown-menu.tsx`)
-- Stores: PascalCase with "Store" suffix (e.g., `UserStore.ts`, `IntersectionStore.ts`)
-- Hooks: camelCase with "use" prefix (e.g., `useAuth.ts`, `useModal.ts`, `useMobile.tsx`)
-- Configuration files: camelCase or constant names (e.g., `site.ts`, `fonts.ts`, `const.ts`)
+- Components: PascalCase (e.g., `Button.tsx`, `FormInput.tsx`)
+- Hooks: camelCase with `use` prefix (e.g., `useAuth.ts`, `usePagination.ts`)
+- Utilities/helpers: camelCase (e.g., `common.ts`, `utils.ts`)
+- Config files: camelCase (e.g., `site.ts`, `fonts.ts`)
+- Stores: camelCase with `-store` suffix (e.g., `user-store.ts`, `intersection-store.ts`)
+- UI components (Radix-based): lowercase with hyphens (e.g., `button.tsx`, `form.tsx`, `scroll-area.tsx`)
+- Form field components: camelCase with `form-` prefix (e.g., `form-input.tsx`, `form-checkbox.tsx`)
+- Provider components: PascalCase in subdirectories (e.g., `QueryClientProvider/index.tsx`)
+- Layout components: PascalCase (e.g., `MainLayout`)
 
 **Functions:**
-- React components (functional): PascalCase (e.g., `function MainLayout({...})`, `const TextField = (...)`)
-- Regular functions: camelCase (e.g., `range`, `validateFileFormat`, `handleToastError`, `getCountdownToTime`)
-- Utility/helper functions: camelCase (e.g., `shortenString`, `shuffleArray`, `numberFormatter`, `debounce`)
-- Custom hooks: camelCase with "use" prefix (e.g., `useAuth`, `useModal`, `useCountdown`)
+- camelCase for all functions (exported and internal): `validateFileFormat`, `handleToastError`, `numberFormatter`
+- Hook functions always start with `use`: `useAuth`, `usePagination`, `useDebounce`
+- React components (function names): PascalCase: `Button`, `FormInput`, `RootLayout`
+- Callback handlers start with action verb: `handleChange`, `handleSubmit`, `handleToastError`
+- Utility functions are descriptive: `validateFileSize`, `formatBytes`, `shortenString`
 
 **Variables:**
-- Constants: UPPER_SNAKE_CASE (e.g., `FILE_FORMAT`, `NUMBER_FORMAT_LOOK_UP`)
-- Local variables: camelCase (e.g., `isOpen`, `accessToken`, `refreshToken`)
-- State variables: camelCase (e.g., `isLoggedIn`, `status`, `user`)
-- Event handlers: camelCase with verb prefix (e.g., `handleToastError`, `onRefreshToken`, `openModal`, `closeModal`)
+- camelCase for all variable declarations: `currentStepIndex`, `totalPageCount`, `leftSiblingIndex`
+- Constants are PascalCase with `const` keyword: `const DOTS = '...'`
+- Interface/Type prefixes with 'I' for interfaces only: `IUser`, `ISetUserData`, `IMeQueryStore`
+- Generic type parameters use PascalCase: `TFieldValues`, `TName`
+- Boolean variables often include `is`, `should`, `can` prefixes: `isFirstStep`, `isLastStep`, `shouldShowLeftDots`, `isMobile`
 
-**Types and Interfaces:**
-- Interface names: PascalCase with "I" prefix (e.g., `IUser`, `IStore`, `IMeQueryStore`, `ISetUserData`, `IOption`, `IMeta`)
-- Type aliases: PascalCase with "T" prefix for unions/complex types, or no prefix for object types (e.g., `TResponse<T>`, `TCommonSort`, `IconSvgProps`)
-- Generic type parameters: Single uppercase letters or descriptive PascalCase (e.g., `<T>`, `<TFormValue>`, `<TFieldValues>`)
-- Export type aliases: PascalCase with "T" prefix (e.g., `type SiteConfig`, `type FCC`)
+**Types:**
+- Interfaces: PascalCase with optional 'I' prefix (inconsistent in codebase): `IUser`, `IMeQueryStore`, `BaseFormFieldProps`
+- Type aliases: PascalCase: `RootLayoutProps`, `ProvidersProps`, `FormInputProps`
+- Props interfaces: `[ComponentName]Props` (e.g., `FormInputProps`, `BaseFormFieldProps`)
+- Generic constraints: `extends FieldValues`, `extends BaseFormFieldProps`
 
 ## Code Style
 
 **Formatting:**
-- Tool: Biome (`.biomejs/biome`)
-- Indentation: 2 spaces
+- Tool: Biome 2.4.13
+- Indent: 2 spaces
 - Line width: 120 characters
-- Line endings: LF
-- Quotes: Single quotes (`'`) for strings
+- Line ending: LF
+- Trailing commas: ES5 style (where valid in ES5)
 - Semicolons: Always required
-- Trailing commas: ES5 style (not in objects/arrays that span lines)
-- Bracket spacing: Yes (e.g., `{ foo }` not `{foo}`)
-- Arrow parentheses: Always required (e.g., `(arg) => {}` not `arg => {}`)
+- Arrow parentheses: Always required (e.g., `(a) => a`, not `a => a`)
+- Bracket spacing: True (e.g., `{ key: value }`)
+- Quote style: Single quotes for strings, single quotes for JSX attributes
+- Final newline: Always inserted
+
+**Example formatting:**
+```typescript
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        destructive: "bg-destructive text-white shadow-xs hover:bg-destructive/90",
+      },
+    },
+  }
+);
+```
 
 **Linting:**
-- Tool: Biome v2.4.13
-- Recommended preset: Disabled (custom rule set)
-- Key enforced rules:
-  - `noChildrenProp`: error (forbid `children` as prop)
-  - `useJsxKeyInIterable`: error (require `key` in lists)
-  - `useImportType`: error (use `import type` for types)
-  - `useAsConstAssertion`: error (use `as const` for literals)
-  - `noDebugger`: error (forbid debugger statements)
-  - `noDuplicateJsxProps`: error (forbid duplicate JSX props)
-  - `useSortedClasses`: error (sort Tailwind classes with auto-fix)
-  - `noDangerouslySetInnerHtmlWithChildren`: error (security rule)
-  - `noUnusedImports`: warn
-  - `noUnusedVariables`: off
-  - `noUndeclaredVariables`: off
+- Tool: Biome 2.4.13
+- Recommended rules: Disabled (custom rule set)
+- Critical rules enabled:
+  - `useJsxKeyInIterable` (error): React key requirement
+  - `useHookAtTopLevel` (error): React hooks rules
+  - `noUnusedImports` (warn): Flag unused imports
+  - `useImportType` (error): Force type imports for types
+  - `useSortedClasses` (error): Tailwind class ordering (nursery rule)
+  - `noDangerouslySetInnerHtmlWithChildren` (error): Security rule
+  - `useValidAnchor` (error): Accessibility rule
+  - `noDebugger` (error): Prevent debug statements
+  - `noCommentText` (error): Prevent arbitrary comment text in certain contexts
+
+**JavaScript-specific formatting:**
+- Indent: 2 spaces
+- JSX quote style: Single quotes for attributes
+- Quote properties: As needed (not always quoted)
+- Trailing commas: ES5
+- Semicolons: Always
+- Arrow parentheses: Always
+- Bracket same line: False (opening brace on new line)
+- Bracket spacing: True
 
 ## Import Organization
 
 **Order:**
-1. React and framework imports (e.g., `import React, { ... } from 'react'`)
-2. External library imports (e.g., `import axios`, `import dayjs`, `import { toast }`)
-3. Project absolute imports (e.g., `import { ... } from '@/components'`, `import { ... } from '@/stores'`)
-4. Local relative imports (rarely used; prefer absolute)
-5. Type imports at end of relevant section or grouped with `import type`
+1. React and core library imports: `import React from 'react'`, `import { useEffect } from 'react'`
+2. External dependencies: `import { cva } from 'class-variance-authority'`, `import { create } from 'zustand'`
+3. Internal component/type imports: `import { Button } from '@/components/ui/button'`
+4. Relative imports (last): `import { someUtil } from '../utils'`
 
 **Path Aliases:**
-- `@/*` maps to `./src/*` (configured in `tsconfig.json`)
-- Use absolute paths with `@/` prefix consistently (e.g., `@/lib/utils`, `@/components/ui/form`, `@/stores`, `@/config`)
+- `@/*` → `./src/*` (used throughout codebase for all internal imports)
+- Example: `import { cn } from '@/lib/utils'`, `import { useAuth } from '@/hooks/use-auth'`
 
-**Type Imports:**
-- Use `import type` for type-only imports (enforced by `useImportType` rule)
-- Example: `import type { Control, FieldPath, FieldValues } from 'react-hook-form'`
+**Biome auto-organizes imports** via `organizeImports` action (enabled in formatter config).
+
+**Pattern observed in codebase:**
+```typescript
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+```
 
 ## Error Handling
 
 **Patterns:**
-- Error display: Use `toast.error()` from `sonner` library via `handleToastError` utility (`src/utils/common.ts`)
-- HTTP errors: Axios interceptors in `src/api/interceptors.ts` handle 401 errors with token refresh logic
-- Validation errors: React Hook Form integrates with custom form field components that display `FormMessage` for field-level errors
-- Default error message: "Something went wrong" as fallback
-- Error logging: `console.error()` for debugging before toast display
+- Use toast notifications for user-facing errors: `toast.error(message)`
+- Error utilities: `handleToastError(error, defaultMessage)` extracts message from error object with fallback chain
+- Error message extraction: `error?.shortMessage ?? error?.message ?? error?.cause?.message ?? defaultMessage`
+- Console error logging: `console.error(error)` used alongside toast notifications
+- No custom error classes observed; errors are caught and handled at display layer
+- Validation functions return boolean: `validateFileFormat()`, `checkFileSize()`, `validateFileSize()`
+- Validation returns `true` for undefined/null inputs (permissive validation pattern)
 
-**Example error handling pattern:**
+**Example pattern:**
 ```typescript
 export const handleToastError = (error: any, defaultError = 'Something went wrong') => {
   console.error(error);
@@ -95,90 +132,112 @@ export const handleToastError = (error: any, defaultError = 'Something went wron
 
 ## Logging
 
-**Framework:** No dedicated logging library; uses `console` for debugging
+**Framework:** Sonner for toast notifications, `console` for debug/error logging
 
 **Patterns:**
-- Error logging: `console.error(error)` in catch blocks and interceptors (`src/api/interceptors.ts`)
-- No structured logging (no Winston, Pino, or similar)
-- Logging is minimal and ad-hoc in utility functions
+- Use `toast.error()` for user-facing error messages
+- Use `console.error()` for server-side/development logging
+- No centralized logging service detected
+- Error logging paired with user notification: `console.error(error)` then `toast.error(...)`
+- Single source of truth for error messages: `handleToastError()` utility in `src/utils/common.ts`
 
 ## Comments
 
 **When to Comment:**
-- Complex logic or non-obvious implementation details
-- Example from `src/utils/common.ts`: Multi-line comments explain array generation logic
-- Avoid commenting obvious code (e.g., `const user = getUser();`)
-- Commented-out code may exist (e.g., `src/api/interceptors.ts` has commented refresh token call)
+- Multi-case logic sections include explanatory comments for complex algorithms (see `usePagination.ts`)
+- Inline comments explain business logic: "Create an array of certain length and set the elements within it from start value to end value"
+- No JSDoc comments observed on utility functions
+- Comments use standard `/*` or `//` syntax
 
-**JSDoc/TSDoc:**
-- Type annotations and exported types have minimal JSDoc usage
-- Component props documented via TypeScript interface/type (e.g., `interface Props<T extends FieldValues>`)
-- No strict JSDoc enforcement across codebase
+**Example style:**
+```typescript
+/*
+  Create an array of certain length and set the elements within it from
+  start value to end value.
+*/
+return Array.from({ length }, (_, idx) => idx + start);
+```
 
 ## Function Design
 
-**Size:** Functions are generally compact, ranging from 1-20 lines for utility functions, up to 40-60 lines for components with form handling logic
+**Size:** Utility functions are compact (5-20 lines typical). Hooks average 15-30 lines. Complex pagination logic spans 30-50 lines with detailed comments.
 
-**Parameters:**
-- React components accept props as single object parameter with destructuring
-- Utility functions accept parameters with type annotations
-- Generic parameters common in form-related utilities (e.g., `<T extends FieldValues>`)
-- Default parameters used for optional values (e.g., `initialState: boolean = false`, `size = 10`, `length = 10`)
+**Parameters:** 
+- Use destructuring for object parameters: `({ control, name, label, description, ...props }) => { ... }`
+- Generic constraints for type-safe props: `<TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>>`
+- Default parameters provided inline: `type = 'text'`, `decimals = 0`
+- Rest parameters used for spreading: `{...field}`, `{...props}`
 
 **Return Values:**
-- Explicitly typed return values (no implicit `any`)
-- Components return JSX.Element or React functional component type
-- Hooks return object with typed values and methods (e.g., `{ isOpen, openModal, closeModal, toggleModal }`)
-- Utility functions return primitive types, arrays, promises, or custom types
-- Void returns used for setup functions (e.g., middleware setup in stores)
+- Utility functions return primitive types: `boolean`, `number`, `string`, arrays: `(number | string)[]`
+- Hooks return objects with state and methods: `{ isLoggedIn, accessToken, refreshToken, user, status, setUserData, logout }`
+- Components return JSX: `React.ReactElement` or implicit return
+- Generic typing preserved in return: `(number | string)[]` for pagination
 
 ## Module Design
 
 **Exports:**
-- Named exports for utilities and types (e.g., `export const range = ...`)
-- Default exports for React components and page-like modules (e.g., `export default MainLayout`)
-- Mixed exports in form utilities: both named exports for individual components and default for wrapper
-- Type exports: `export type SiteConfig = typeof siteConfig`
-- Barrel exports in index files (e.g., `src/stores/index.ts`, `src/components/form-field/index.tsx`)
+- Named exports for utilities: `export const range = (...)`, `export const validateFileFormat = (...)`
+- Named exports for components: `export { Button, buttonVariants }` (both component and its variants)
+- Named exports for hooks: `export const useAuth = () => { ... }`
+- Named exports for interfaces/types: `export interface IUser { ... }`, `export type RootLayoutProps = { ... }`
+- Default exports for single-export modules: `export default function RootLayout(...) { ... }`, `export default Providers`
 
 **Barrel Files:**
-- Used to group related exports: `src/stores/index.ts` exports all store selectors
-- Used in form-field components: `src/components/form-field/index.tsx` exports all field types
-- Index files re-export from subdirectories for cleaner imports in client code
+- Used in hook directories: `src/hooks/` appears to have individual files, no barrel observed
+- Used in store directories: `src/stores/index.ts` imports and re-exports: `export * from './index'`
+- Pattern: `export * from './user-store'` and `export * from './intersection-store'`
+- Import from barrel: `import { useUserStore } from '@/stores'`
 
-**Component Composition:**
-- Wrapping components: Use `React.forwardRef` for components that need ref forwarding (e.g., `FormControl`, `FormLabel`, `FormDescription`)
-- Props interface pattern: Extend HTML element attributes and add custom props (e.g., `interface Props<T extends FieldValues> extends InputProps`)
-- Functional component naming: Capital first letter (`const MainLayout = ...`)
+**Example barrel pattern:**
+```typescript
+// src/stores/index.ts
+export * from './user-store'
+export * from './intersection-store'
+```
 
-## Special Patterns
+## Component Patterns
 
-**Custom Hooks:**
-- Always use `'use client'` directive at top of file if using browser APIs
-- Manage local state with `useState` and side effects with `useCallback`
-- Return objects with clear method names (e.g., `{ isOpen, openModal, closeModal, toggleModal }`)
-- Example: `src/hooks/useModal.ts`
-
-**Zustand Stores:**
-- Create base store with `create<StoreType>()`
-- Wrap with `persist` middleware for localStorage
-- Use `createSelectorFunctions` wrapper for selector hooks
-- Separate state, actions, and lifecycle methods in single object
-- Example: `src/stores/UserStore.ts`
+**React Components:**
+- Functional components with destructured props: `function Button({ className, variant, size, asChild = false, ...props })`
+- Generic component props: `<React.ComponentProps<"button"> & VariantProps<typeof buttonVariants> & { asChild?: boolean }>`
+- Client-side marker for interactive components: `'use client'` directive at top of file
 
 **Form Components:**
-- Integrate with React Hook Form via `Control` and `FieldPath` generics
-- Provide custom wrapper components that compose UI library components
-- Pass through standard HTML attributes while adding custom styling props
-- Use `cn()` utility for conditional class merging
-- Example: `src/components/form-field/TextField.tsx`
+- All form components accept `control` from react-hook-form
+- Generic typing for type-safe form fields: `FormInputProps<TFieldValues, TName>`
+- Render function pattern: `render={({ field }) => ( <FormItem>...</FormItem> )}`
+- Error display: `<FormMessage />` component automatically renders field validation errors
+- Custom handling for number inputs: Type coercion in onChange handler
 
-**Styling:**
-- Tailwind CSS for utility classes
-- `class-variance-authority` for component variants
-- `cn()` utility (`src/lib/utils.ts`) for merging Tailwind classes with `clsx` and `tailwind-merge`
-- Inline styling props for custom ClassValue arrays merged via `cn()`
+**Hooks:**
+- Hooks use `useState` and `useEffect` from React core
+- Hooks return simple objects or arrays: `{ step, steps, isFirstStep, isLastStep, goTo, next, back }`
+- Generic hook typing: `useDebounce<T>()` with generic type parameter
+- Dependencies properly listed in useEffect: `[value, delay]`, `[steps.length]`
+
+**State Management:**
+- Zustand stores with createSelectorFunctions helper: `createSelectorFunctions(useBaseUserStore)`
+- Store exports use hook pattern: `export const useUserStore = createSelectorFunctions(...)`
+- Persistence middleware: `persist(...)` with localStorage storage
+- Selector hooks: `useUserStore.use.accessToken()`, `useUserStore.use.setUser()`
+
+## Type Safety
+
+**TypeScript configuration:**
+- Target: ES2017
+- Strict mode: Enabled
+- JSX: react-jsx
+- Module resolution: bundler
+- All implicit `any` types caught by linter (noExplicitAny: off - but caught by usage)
+
+**Type patterns:**
+- Generic constraints on form components: `TFieldValues extends FieldValues`
+- Generic type preservation: Functions maintain generic types through call chains
+- Union types for state: `status: 'waiting' | 'ready'`
+- Optional properties: `user?: IUser`, `description?: string`
+- Type imports: Always use `import type` for type-only imports (enforced by linter)
 
 ---
 
-*Convention analysis: 2026-05-08*
+*Convention analysis: 2026-05-09*

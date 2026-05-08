@@ -1,66 +1,75 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-05-08
+**Analysis Date:** 2026-05-09
 
 ## Test Framework
 
-**Status:** Not Implemented
+**Status:** No testing framework currently configured in this project.
 
-**Current State:**
-- No test files exist in the codebase (no `*.test.ts`, `*.test.tsx`, `*.spec.ts`, `*.spec.tsx` files detected)
-- No testing framework installed (Jest, Vitest, etc. not in devDependencies)
-- No test configuration files present (`jest.config.js`, `vitest.config.ts`, etc.)
-- Biome config includes test file overrides (`*.spec.ts`, `*.test.tsx`) but they are not utilized
+**Runner:**
+- Not detected (Jest and Vitest configs not present)
 
-**Framework Recommendation:**
-- Vitest is suggested for unit/integration testing (faster, TypeScript-native, works with Next.js)
-- Alternatively, Jest with `@testing-library/react` for traditional setup
+**Assertion Library:**
+- Not detected
 
-## Testing Infrastructure Gaps
+**Build-time Type Checking:**
+- TypeScript type checking available via `pnpm type-check` command
+- Runs `tsc --noEmit` for static type validation
 
-**Missing:**
-- Test runner configuration
-- Unit test structure and patterns
-- Component testing utilities
-- API mocking setup
-- Test data factories or fixtures
-- Code coverage measurement
+**Run Commands:**
+```bash
+pnpm type-check              # Type check without emitting files (tsc --noEmit)
+```
+
+**No test execution commands found in package.json scripts.**
 
 ## Test File Organization
 
-**Planned Structure (if implemented):**
-- **Location:** Co-located with source files
-- **Naming Convention:** 
-  - `Component.test.tsx` for React components
-  - `utility.test.ts` for utility functions
-  - `hook.test.ts` for custom hooks
-  - `store.test.ts` for Zustand stores
-- **Directory Pattern:**
-  ```
-  src/
-  ├── components/
-  │   ├── ui/
-  │   │   ├── button.tsx
-  │   │   └── button.test.tsx
-  │   └── form-field/
-  │       ├── TextField.tsx
-  │       └── TextField.test.tsx
-  ├── hooks/
-  │   ├── useAuth.ts
-  │   └── useAuth.test.ts
-  ├── utils/
-  │   ├── common.ts
-  │   └── common.test.ts
+**Location:**
+- Not established (no test files present in codebase)
+- Biome config includes test file overrides for future implementation:
+  ```json
+  {
+    "includes": ["*.spec.ts", "*.spec.tsx", "*.test.ts", "*.test.tsx"],
+    "javascript": {
+      "globals": ["afterEach", "afterAll", "beforeEach", "beforeAll", "describe", "expect", "it", "test", "jest"]
+    }
+  }
   ```
 
-## Test Structure (Template for Implementation)
+**Naming Convention (planned/configured):**
+- `*.test.ts` or `*.test.tsx` for test files
+- `*.spec.ts` or `*.spec.tsx` alternative naming
+- Test globals configured in Biome: `afterEach`, `afterAll`, `beforeEach`, `beforeAll`, `describe`, `expect`, `it`, `test`, `jest`
 
-**Recommended Suite Organization:**
+**Suggested Structure (based on Biome config):**
+```
+src/
+├── components/
+│   ├── ui/
+│   │   ├── button.tsx
+│   │   └── button.test.tsx        # co-located with component
+│   └── form-fields/
+│       ├── form-input.tsx
+│       └── form-input.test.tsx
+├── hooks/
+│   ├── use-auth.ts
+│   └── use-auth.test.ts
+├── utils/
+│   ├── common.ts
+│   └── common.test.ts
+└── stores/
+    ├── user-store.ts
+    └── user-store.test.ts
+```
 
-For unit tests:
+## Test Structure
+
+**Note:** No actual test files exist in the codebase. This section describes the framework configuration and recommended approach for future implementation.
+
+**Biome Test Globals (configured):**
 ```typescript
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-
+// Test framework globals available after Jest setup
 describe('ComponentName', () => {
   beforeEach(() => {
     // Setup
@@ -70,289 +79,295 @@ describe('ComponentName', () => {
     // Cleanup
   });
 
-  it('should render correctly', () => {
-    expect(true).toBe(true);
-  });
-
-  it('should handle user interaction', () => {
-    // Test logic
+  it('should behave in expected way', () => {
+    // Arrange
+    // Act
+    // Assert
   });
 });
 ```
 
-For component tests with React Testing Library:
-```typescript
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { MyComponent } from './MyComponent';
-
-describe('MyComponent', () => {
-  it('renders button with label', () => {
-    render(<MyComponent />);
-    expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
-  });
-
-  it('calls onClick when clicked', async () => {
-    const user = userEvent.setup();
-    const handleClick = vi.fn();
-    render(<MyComponent onClick={handleClick} />);
-    await user.click(screen.getByRole('button'));
-    expect(handleClick).toHaveBeenCalled();
-  });
-});
-```
-
-**Patterns:**
-- Use `describe` blocks to organize test suites by component/function
-- Use `beforeEach`/`afterEach` for common setup/teardown
-- Use clear test names with "should" verb (e.g., "should render correctly")
-- Use `expect` assertions from testing framework
-- Group related tests in nested `describe` blocks
+**Patterns (recommended based on dependencies):**
+- Use React Testing Library for component testing (available via `@types/react-dom` and React dependencies)
+- Use Jest or Vitest for unit/integration testing
+- Setup file would handle provider wrapping (theme, query client, zustand stores)
 
 ## Mocking
 
-**Framework:** Vitest (recommended) has `vi.fn()` and `vi.mock()`
+**Framework:**
+- Not configured (would typically be Jest or Vitest)
 
-**Patterns (to establish):**
-```typescript
-// Mock function
-const mockCallback = vi.fn();
+**Patterns:**
+- No mocking utilities observed in codebase
+- Zustand stores would need mocking for state management testing
+- React Query would need mocking for data fetching tests
 
-// Mock module
-vi.mock('@/api/axios', () => ({
-  request: vi.fn(),
-}));
+**What to Mock (recommended):**
+- External API calls (using axios)
+- Zustand store actions and state
+- React Query hooks
+- Socket.io connections (`socket.ts` utility)
+- Toast notifications (Sonner)
 
-// Mock Zustand store
-vi.mock('@/stores', () => ({
-  useUserStore: {
-    getState: vi.fn(() => ({
-      accessToken: 'token',
-      user: { id: 1, name: 'Test User' },
-    })),
-  },
-}));
-```
-
-**What to Mock:**
-- External API calls (Axios `request` instance from `src/api/axios.ts`)
-- Zustand stores (e.g., `useUserStore` from `src/stores/UserStore.ts`)
-- Browser APIs (e.g., `localStorage`, `window` APIs)
-- Third-party libraries (e.g., `sonner` toast, `react-hook-form`)
-- Child components (when testing in isolation)
-
-**What NOT to Mock:**
-- Utility functions (test them directly, e.g., `common.ts` utilities)
-- TypeScript types and interfaces
-- React hooks from React itself (hooks can be tested through components)
-- Small helper functions (e.g., `cn()` from `lib/utils.ts`)
+**What NOT to Mock (recommended):**
+- React hooks (useState, useEffect, etc.)
+- Custom hooks (useAuth, usePagination, etc.) unless testing behavior in isolation
+- Utility functions (should be pure and testable without mocks)
+- UI component libraries (Radix UI, Tailwind CSS)
 
 ## Fixtures and Factories
 
-**Test Data (Not Currently Implemented):**
+**Test Data:**
+- No fixtures or factories currently present
+- Recommended approach would be to create test factories in `__tests__/fixtures/` or similar
 
-Recommended location: `src/__tests__/fixtures/` or `src/__tests__/factories/`
+**Suggested location:**
+```
+__tests__/
+├── fixtures/
+│   ├── users.ts              # User object factories
+│   ├── forms.ts              # Form data factories
+│   └── api-responses.ts      # Mock API response data
+└── setup.ts                  # Jest/Vitest setup and providers
+```
 
-Example fixture pattern:
+**Example pattern (recommended for this codebase):**
 ```typescript
-// src/__tests__/fixtures/user.ts
-export const mockUser = {
-  id: 1,
-  name: 'Test User',
+// __tests__/fixtures/users.ts
+export const createMockUser = (overrides?: Partial<IUser>): IUser => ({
+  id: '1',
   email: 'test@example.com',
-};
-
-export const mockAccessToken = 'mock-access-token';
-export const mockRefreshToken = 'mock-refresh-token';
+  name: 'Test User',
+  imageUrl: '',
+  role: 'user',
+  permissions: [],
+  type: 'standard',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  ...overrides,
+});
 ```
-
-Example factory pattern:
-```typescript
-// src/__tests__/factories/userFactory.ts
-export function createMockUser(overrides = {}) {
-  return {
-    id: 1,
-    name: 'Test User',
-    email: 'test@example.com',
-    ...overrides,
-  };
-}
-```
-
-**Location:** Test fixtures and factories should be in a shared `__tests__` directory at root or under `src/`
 
 ## Coverage
 
-**Requirements:** Not enforced (no coverage thresholds configured)
+**Requirements:** None enforced (no test infrastructure in place)
 
-**Recommendation:**
-```json
-{
-  "coverage": {
-    "provider": "v8",
-    "reporter": ["text", "json", "html"],
-    "all": true,
-    "include": ["src/**/*.{ts,tsx}"],
-    "exclude": ["src/**/*.d.ts", "src/**/*.stories.tsx"],
-    "lines": 80,
-    "functions": 80,
-    "branches": 75,
-    "statements": 80
-  }
-}
-```
-
-**View Coverage (future command):**
+**Recommended approach:**
 ```bash
-pnpm vitest --coverage
+# After test setup
+jest --coverage
+# or
+vitest --coverage
 ```
 
 ## Test Types
 
-**Unit Tests:**
-- **Scope:** Individual utility functions, custom hooks
-- **Approach:** Direct function call testing with mocked dependencies
-- **Examples:**
-  - Test `range()` utility with various inputs and edge cases
-  - Test `validateFileFormat()` with different file types
-  - Test `useModal()` hook state transitions
-  - Test `useAuth()` hook token and user retrieval
+**Unit Tests (recommended structure):**
+- Scope: Individual utilities, hooks, components in isolation
+- Approach: Test function outputs with various inputs, props, state changes
+- Example targets: `src/utils/common.ts`, `src/hooks/use-auth.ts`, `src/lib/utils.ts`
 
-**Integration Tests:**
-- **Scope:** Components with form handling, store interaction, API calls
-- **Approach:** Component render testing with mocked APIs and store state
-- **Examples:**
-  - Test `TextField` component with React Hook Form integration
-  - Test `MainLayout` with providers and child components
-  - Test form submission with validation and error handling
-  - Test Zustand store persistence to localStorage
+**Integration Tests (recommended structure):**
+- Scope: Multiple components/utilities working together, form submissions, store interactions
+- Approach: Test component rendering with providers, form field interactions, state updates
+- Example targets: Form components with validation, user flows with store updates
 
 **E2E Tests:**
-- **Framework:** Not used currently
-- **Recommendation:** Playwright or Cypress for full page/user flow testing
-- **Future scope:** Test complete user journeys (login, form submission, navigation)
+- Framework: Not configured (would use Playwright or Cypress)
+- Recommended: Add after unit/integration tests establish
 
-## Common Test Patterns (To Establish)
+## Recommended Test Setup
 
-**Async Testing:**
-```typescript
-it('should fetch user data', async () => {
-  const { getState } = useUserStore;
-  const state = getState();
-  // Test async actions
-  await expect(Promise.resolve('data')).resolves.toBeDefined();
-});
+**Dependencies to add for testing:**
+```json
+{
+  "devDependencies": {
+    "@testing-library/react": "^latest",
+    "@testing-library/jest-dom": "^latest",
+    "@types/jest": "^latest",
+    "jest": "^latest",
+    "jest-environment-jsdom": "^latest",
+    "ts-jest": "^latest",
+    "@testing-library/user-event": "^latest"
+  }
+}
 ```
 
-**Error Testing:**
+**Jest configuration file (jest.config.ts):**
 ```typescript
-it('should handle validation errors', () => {
-  const result = validateFileFormat({ type: 'text/plain' }, ['image/*']);
-  expect(result).toBe(false);
-});
+import type { Config } from 'jest';
 
-it('should throw on invalid input', () => {
-  expect(() => {
-    riskyFunction(null);
-  }).toThrow();
+const config: Config = {
+  preset: 'ts-jest',
+  testEnvironment: 'jsdom',
+  roots: ['<rootDir>/src'],
+  testMatch: ['**/__tests__/**/*.test.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', {
+      tsconfig: {
+        jsx: 'react-jsx',
+      },
+    }],
+  },
+};
+
+export default config;
+```
+
+**Setup file (jest.setup.ts):**
+```typescript
+import '@testing-library/jest-dom';
+import { server } from './__tests__/setup';
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+```
+
+## Common Testing Patterns (Recommended)
+
+**Component Testing:**
+```typescript
+import { render, screen } from '@testing-library/react';
+import { Button } from '@/components/ui/button';
+
+describe('Button', () => {
+  it('renders with correct text', () => {
+    render(<Button>Click me</Button>);
+    expect(screen.getByText('Click me')).toBeInTheDocument();
+  });
+
+  it('applies variant classes', () => {
+    const { container } = render(<Button variant="destructive">Delete</Button>);
+    expect(container.querySelector('button')).toHaveClass('bg-destructive');
+  });
 });
 ```
 
 **Hook Testing:**
 ```typescript
-import { renderHook, act } from '@testing-library/react';
-import { useModal } from '@/hooks/useModal';
+import { renderHook } from '@testing-library/react';
+import { useAuth } from '@/hooks/use-auth';
 
-it('should toggle modal state', () => {
-  const { result } = renderHook(() => useModal());
-  
-  expect(result.current.isOpen).toBe(false);
-  
-  act(() => {
-    result.current.openModal();
+describe('useAuth', () => {
+  it('returns user data from store', () => {
+    const { result } = renderHook(() => useAuth());
+    expect(result.current.user).toBeDefined();
   });
-  
-  expect(result.current.isOpen).toBe(true);
+
+  it('returns isLoggedIn state', () => {
+    const { result } = renderHook(() => useAuth());
+    expect(typeof result.current.isLoggedIn).toBe('boolean');
+  });
 });
 ```
 
-**Store Testing:**
+**Utility Function Testing:**
 ```typescript
-import { renderHook, act } from '@testing-library/react';
-import { useUserStore } from '@/stores';
+import { validateFileSize, shortenString } from '@/utils/common';
 
-it('should set and logout user', () => {
-  const { result } = renderHook(() => useUserStore());
-  
-  act(() => {
-    result.current.setUser({ id: 1, name: 'Test' });
+describe('Common Utilities', () => {
+  describe('validateFileSize', () => {
+    it('returns true for files under size limit', () => {
+      const file = new File(['content'], 'test.txt', { type: 'text/plain' });
+      expect(validateFileSize(file, 10)).toBe(true);
+    });
+
+    it('returns false for files over size limit', () => {
+      const file = new File(['x'.repeat(11 * 1024 * 1024)], 'test.bin');
+      expect(validateFileSize(file, 10)).toBe(false);
+    });
+
+    it('returns true for undefined input (permissive validation)', () => {
+      expect(validateFileSize(undefined as any, 10)).toBe(true);
+    });
   });
-  
-  expect(result.current.user).toEqual({ id: 1, name: 'Test' });
-  
-  act(() => {
-    result.current.logout();
+
+  describe('shortenString', () => {
+    it('shortens long strings', () => {
+      expect(shortenString('verylongstring', 4)).toBe('very...ring');
+    });
+
+    it('returns original string if shorter than limit', () => {
+      expect(shortenString('short', 10)).toBe('short');
+    });
+
+    it('returns empty string for undefined', () => {
+      expect(shortenString(undefined, 10)).toBe('');
+    });
   });
-  
-  expect(result.current.accessToken).toBe('');
 });
 ```
 
-## Testing Tools to Install
-
-**Recommended devDependencies:**
-```json
-{
-  "devDependencies": {
-    "vitest": "^latest",
-    "@testing-library/react": "^latest",
-    "@testing-library/jest-dom": "^latest",
-    "@testing-library/user-event": "^latest",
-    "@vitest/ui": "^latest",
-    "jsdom": "^latest"
-  }
-}
-```
-
-## Test Configuration (To Create)
-
-**File: `vitest.config.ts`**
+**Form Component Testing:**
 ```typescript
-import { getViteConfig } from 'astro/config';
-import path from 'path';
-import { defineConfig } from 'vitest/config';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { useForm } from 'react-hook-form';
+import { FormInput } from '@/components/form-fields/form-input';
 
-export default defineConfig({
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: [],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/**/*.d.ts'],
-    },
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
+describe('FormInput', () => {
+  it('renders label when provided', () => {
+    const { control } = useForm();
+    render(<FormInput control={control} name="email" label="Email" />);
+    expect(screen.getByText('Email')).toBeInTheDocument();
+  });
+
+  it('handles number type conversion', async () => {
+    const user = userEvent.setup();
+    const { control } = useForm();
+    render(<FormInput control={control} name="count" type="number" />);
+    
+    const input = screen.getByRole('textbox');
+    await user.type(input, '42');
+    expect(input).toHaveValue(42);
+  });
 });
 ```
 
-**Update `package.json` scripts:**
-```json
-{
-  "scripts": {
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
-  }
-}
+**Async Testing (Promises/API calls):**
+```typescript
+it('handles async operations', async () => {
+  const { result, waitForNextUpdate } = renderHook(() => useAuth());
+  
+  // Trigger async action
+  act(() => {
+    result.current.setUserData({
+      accessToken: 'token',
+      refreshToken: 'refresh',
+      user: mockUser,
+    });
+  });
+
+  await waitForNextUpdate();
+  expect(result.current.isLoggedIn).toBe(true);
+});
 ```
+
+## Code Quality Tools (Currently Active)
+
+**Type Checking:**
+- TypeScript enabled (strict mode)
+- Run: `pnpm type-check`
+- No runtime issues caught automatically
+
+**Linting:**
+- Biome 2.4.13 active
+- Run: `pnpm lint`
+- Fix: `pnpm lint:fix`
+- Enforces correctness rules but does not catch logic errors
+
+**Code Formatting:**
+- Biome formatting
+- Run: `pnpm format:check`
+- Fix: `pnpm format:fix`
+
+**Note:** Testing framework (Jest/Vitest) should be the next addition to the QA pipeline to catch runtime and logic errors.
 
 ---
 
-*Testing analysis: 2026-05-08*
+*Testing analysis: 2026-05-09*

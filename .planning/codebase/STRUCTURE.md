@@ -1,331 +1,352 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-05-08
+**Analysis Date:** 2026-05-09
 
 ## Directory Layout
 
 ```
 curtains/
 ├── src/
-│   ├── app/                      # Next.js App Router
-│   │   ├── layout.tsx            # Root layout with metadata and providers
-│   │   ├── page.tsx              # Home page (renders Home module)
-│   │   ├── providers.tsx          # Client providers wrapper
-│   │   ├── error.tsx             # Error boundary component
-│   │   ├── robots.ts             # robots.txt metadata
-│   │   └── sitemap.ts            # sitemap.xml metadata
+│   ├── app/                          # Next.js App Router pages
+│   │   ├── (platform)/               # Public/user routes (no URL prefix)
+│   │   │   ├── layout.tsx            # MainLayout wrapper
+│   │   │   └── page.tsx              # Home page → modules/home
+│   │   ├── admin/                    # Admin routes (/admin prefix)
+│   │   │   ├── layout.tsx            # AdminLayout wrapper
+│   │   │   └── page.tsx              # Admin dashboard
+│   │   ├── layout.tsx                # Root layout (HTML, metadata, providers)
+│   │   ├── providers.tsx             # Theme, QueryClient, ProgressBar setup
+│   │   ├── error.tsx                 # Error boundary
+│   │   ├── robots.ts                 # SEO robots config
+│   │   └── sitemap.ts                # SEO sitemap config
 │   │
-│   ├── components/               # Reusable UI components
-│   │   ├── ui/                   # Radix UI + Tailwind primitives (35 files)
-│   │   │   ├── button.tsx        # Button component
-│   │   │   ├── dialog.tsx        # Modal dialog
-│   │   │   ├── form.tsx          # React Hook Form wrapper
-│   │   │   ├── input.tsx         # Text input
-│   │   │   ├── select.tsx        # Dropdown select
-│   │   │   └── ... (30 more)
-│   │   │
-│   │   ├── form-field/           # Form field wrappers (10 files)
-│   │   │   ├── TextField.tsx     # Text input with form integration
-│   │   │   ├── SelectField.tsx   # Select with form integration
-│   │   │   ├── CheckboxField.tsx # Checkbox with form integration
-│   │   │   ├── RadioGroupField.tsx
-│   │   │   ├── NumberField.tsx
-│   │   │   ├── TextAreaField.tsx
-│   │   │   ├── SwitchField.tsx
-│   │   │   ├── InputFileField.tsx
-│   │   │   └── index.tsx         # Barrel export
-│   │   │
-│   │   ├── layouts/              # Page layout templates
-│   │   │   └── MainLayout/       # Primary page layout
-│   │   │       ├── index.tsx     # Layout shell (Header, Footer, main)
+│   ├── components/                   # Reusable React components
+│   │   ├── layouts/                  # Layout wrappers
+│   │   │   ├── main-layout/          # Public pages template (header/footer)
+│   │   │   │   ├── index.tsx
+│   │   │   │   └── components/
+│   │   │   │       ├── header/       # Navigation header
+│   │   │   │       └── footer/       # Footer
+│   │   │   └── admin-layout/         # Admin pages template (sidebar/header)
+│   │   │       ├── index.tsx
 │   │   │       └── components/
-│   │   │           ├── Header/   # Navigation header (empty placeholder)
-│   │   │           └── Footer/   # Page footer (empty placeholder)
+│   │   │           ├── app-header/   # Admin header with search
+│   │   │           └── app-sidebar/  # Admin navigation sidebar
 │   │   │
-│   │   ├── providers/            # Context provider wrappers
-│   │   │   ├── QueryClientProvider/    # TanStack Query setup
-│   │   │   └── ThemeProvider/          # Next-themes dark/light mode
+│   │   ├── ui/                       # Headless Radix UI components (styled with Tailwind)
+│   │   │   ├── button.tsx
+│   │   │   ├── form.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── sidebar.tsx
+│   │   │   ├── data-table/           # TanStack React Table wrapper
+│   │   │   ├── kbar/                 # Command palette
+│   │   │   ├── alert-dialog.tsx
+│   │   │   ├── badge.tsx
+│   │   │   ├── carousel.tsx
+│   │   │   ├── dropdown-menu.tsx
+│   │   │   ├── input-file.tsx
+│   │   │   ├── input-file-dropzone.tsx
+│   │   │   └── [40+ more UI primitives]
 │   │   │
-│   │   └── utilities/            # Layout utility components
-│   │       ├── h-stack.tsx       # Horizontal flex container
-│   │       ├── v-stack.tsx       # Vertical flex container
-│   │       ├── show.tsx          # Conditional render wrapper
-│   │       └── index.ts          # Barrel export
+│   │   ├── form-fields/              # Form input components (React Hook Form + UI)
+│   │   │   ├── form-input.tsx
+│   │   │   ├── form-select.tsx
+│   │   │   ├── form-checkbox.tsx
+│   │   │   ├── form-radio-group.tsx
+│   │   │   ├── form-date-picker.tsx
+│   │   │   ├── form-file-upload.tsx
+│   │   │   ├── form-textarea.tsx
+│   │   │   ├── form-slider.tsx
+│   │   │   └── demo-form.tsx         # Example form
+│   │   │
+│   │   ├── providers/                # Context/state providers
+│   │   │   ├── QueryClientProvider/  # React Query setup
+│   │   │   └── ThemeProvider/        # next-themes setup
+│   │   │
+│   │   └── utilities/                # Layout utility components
+│   │       ├── h-stack.tsx           # Horizontal flex container
+│   │       ├── v-stack.tsx           # Vertical flex container
+│   │       ├── animation-stack.tsx   # Animated container
+│   │       ├── loading-stack.tsx     # Loading state wrapper
+│   │       └── show.tsx              # Conditional render helper
 │   │
-│   ├── modules/                  # Feature modules (pages content)
-│   │   └── Home/
-│   │       └── index.tsx         # Home page content (placeholder)
+│   ├── modules/                      # Feature-scoped components (future: auth, dashboard, etc)
+│   │   └── home/                     # Home page module
+│   │       └── index.tsx             # Home page content
 │   │
-│   ├── stores/                   # Global state (Zustand)
-│   │   ├── UserStore.ts          # User auth state + persistence
-│   │   ├── IntersectionStore.ts  # Viewport target tracking
-│   │   └── index.ts              # Barrel export
+│   ├── stores/                       # Zustand state stores (with persistence)
+│   │   ├── user-store.ts             # Auth state (tokens, user data)
+│   │   ├── intersection-store.ts     # Intersection observer state
+│   │   └── index.ts                  # Barrel export
 │   │
-│   ├── api/                      # HTTP client and interceptors
-│   │   ├── axios.ts              # Axios instance with config
-│   │   └── interceptors.ts       # Request/response/error interceptors
+│   ├── hooks/                        # Custom React hooks
+│   │   ├── use-auth.ts               # Auth context wrapper around useUserStore
+│   │   ├── use-mobile.ts             # Mobile viewport detection
+│   │   ├── use-pagination.ts         # Pagination state
+│   │   ├── use-search-params.ts      # URL search params helper
+│   │   ├── use-socket.ts             # WebSocket client
+│   │   ├── use-file-upload.ts        # File upload handling
+│   │   ├── use-debounce.tsx          # Debounce state value
+│   │   ├── use-modal.ts              # Modal state
+│   │   ├── use-copy.ts               # Copy to clipboard
+│   │   └── [10+ more hooks]
 │   │
-│   ├── hooks/                    # Custom React hooks (10 files)
-│   │   ├── useAuth.ts            # Auth state & login/logout
-│   │   ├── useSocket.ts          # WebSocket client
-│   │   ├── useModal.ts           # Modal open/close state
-│   │   ├── usePagination.ts      # Pagination logic
-│   │   ├── usePaging.ts          # Paging (page/limit) state
-│   │   ├── useSearchParams.ts    # URL search params
-│   │   ├── useMobile.tsx         # Mobile breakpoint detection
-│   │   ├── useWindowSize.ts      # Window dimensions
-│   │   ├── useCopy.ts            # Copy to clipboard
-│   │   └── useCountdown.ts       # Countdown timer
+│   ├── api/                          # HTTP/API layer
+│   │   ├── http-instance.ts          # Axios instance with interceptors (token management)
+│   │   └── http-instance.helper.ts   # Error checking utilities
 │   │
-│   ├── lib/                      # Utilities and helpers
-│   │   ├── utils.ts              # cn() for className merging
-│   │   ├── socket.ts             # SocketService class (Socket.io wrapper)
-│   │   ├── cookie.ts             # Cookie utilities
-│   │   ├── debounce.ts           # Debounce helper
-│   │   └── calc.ts               # Calculation/math helpers
+│   ├── lib/                          # Utility functions
+│   │   ├── utils.ts                  # cn() - clsx + tailwind-merge
+│   │   ├── socket.ts                 # WebSocket client setup
+│   │   ├── cookie.ts                 # Cookie utilities
+│   │   ├── debounce.ts               # Debounce function
+│   │   └── calc.ts                   # Math/calculation helpers
 │   │
-│   ├── utils/                    # Constants and helpers
-│   │   ├── const.ts              # Environment vars, file types, formatting
-│   │   ├── routes.ts             # Route constants
-│   │   └── common.ts             # Common utilities (range, etc)
+│   ├── utils/                        # Configuration and constants
+│   │   ├── const.ts                  # Env vars, file types, error messages
+│   │   ├── common.ts                 # Shared utility functions
+│   │   └── routes.ts                 # Route definitions
 │   │
-│   ├── config/                   # Configuration files
-│   │   ├── index.ts              # appConfig (API_URL, APP_URL)
-│   │   ├── site.ts               # siteConfig (name, description, OG image)
-│   │   └── fonts.ts              # Font imports and variable exports
+│   ├── types/                        # TypeScript type definitions
+│   │   ├── index.ts                  # Global types (Response, Option, NavItem, etc)
+│   │   ├── base-form.ts              # Form types
+│   │   ├── additional.d.ts           # Type augmentation
+│   │   └── [other type files]
 │   │
-│   ├── types/                    # TypeScript definitions
-│   │   ├── index.ts              # Common types (TResponse, IOption, etc)
-│   │   └── additional.d.ts       # Global type augmentations
+│   ├── config/                       # Application configuration
+│   │   ├── index.ts                  # App URL and API URL
+│   │   ├── site.ts                   # Site metadata (name, description)
+│   │   └── fonts.ts                  # Next.js local fonts (Geist Sans/Mono)
 │   │
-│   ├── styles/                   # Global styles
-│   │   └── globals.css           # Tailwind + brand CSS
+│   ├── assets/                       # Static assets
+│   │   ├── svg/                      # SVG files (auto-converted to React components)
+│   │   ├── fonts/                    # Local font files (GeistVF.woff, etc)
+│   │   └── icons.tsx                 # Icon exports
 │   │
-│   └── assets/                   # Static assets
-│       ├── fonts/                # Custom font files
-│       ├── svg/                  # SVG icon files
-│       └── icons.tsx             # Icon component library
+│   └── styles/                       # Global CSS
+│       └── globals.css               # Tailwind CSS imports, global styles
 │
-├── public/                       # Static files (served at /)
-│   └── images/                   # Image assets
+├── public/                           # Static files served as-is
+│   ├── favicon.ico
+│   ├── apple-touch-icon.png
+│   └── [other static assets]
 │
-├── docs/                         # Project documentation
-│   ├── design/
-│   ├── planning/
-│   └── requirements/
+├── docs/                             # Documentation files
+├── docker/                           # Docker configuration
+├── .github/                          # GitHub configuration
+│   ├── get-shit-done/                # GSD command configs
+│   └── skills/                       # Project skills definitions
 │
-├── docker/                       # Docker configuration
-│   └── nginx/
+├── .husky/                           # Git hooks (pre-commit, commit-msg)
+├── .vscode/                          # VS Code settings
+├── .claude/                          # Claude AI configuration
 │
-├── .github/                      # GitHub workflows & GSD configuration
-├── .claude/                      # Claude/Anthropic tool configuration
-├── .husky/                       # Git hooks
-│
-├── .env.example                  # Example environment variables
-├── .editorconfig                 # Editor formatting rules
-├── next.config.ts                # Next.js configuration (SVG, Turbopack)
-├── tsconfig.json                 # TypeScript configuration
-├── biome.json                    # Biome linter/formatter config
-├── postcss.config.mjs            # PostCSS config (Tailwind)
-├── tailwindcss.config.ts         # Tailwind CSS configuration
-├── package.json                  # Dependencies and scripts
-└── pnpm-lock.yaml                # Lockfile (pnpm)
+├── next.config.ts                    # Next.js config (SVG handling, turbopack)
+├── tsconfig.json                     # TypeScript configuration
+├── tailwind.config.js                # Tailwind CSS configuration
+├── postcss.config.mjs                # PostCSS configuration
+├── biome.json                        # Biome linter/formatter config
+├── commitlint.config.js              # Commit message linting
+├── components.json                   # Shadcn component config
+├── docker-compose.yml                # Docker Compose setup
+├── .editorconfig                     # Editor conventions
+├── .env.example                      # Environment variables template
+├── package.json                      # Dependencies and scripts
+├── pnpm-lock.yaml                    # Locked dependency versions
+├── README.md                         # Project documentation
+└── preinstall.js                     # Preinstall validation script
 ```
 
 ## Directory Purposes
 
-**src/app/**
-- Purpose: Next.js App Router directory
-- Contains: Root layout, pages, error boundary, metadata generators
-- Key files: `layout.tsx` (root), `page.tsx` (home page), `providers.tsx` (client context setup)
+**`src/app/`**
+- Purpose: Next.js App Router pages and layouts
+- Contains: Page components, layout wrappers, error boundaries
+- Key files: `layout.tsx` (root), `providers.tsx` (global context)
+- Routing: `(platform)/page.tsx` → `/`, `admin/page.tsx` → `/admin`
 
-**src/components/**
-- Purpose: Reusable UI components
-- Contains: Radix UI primitives, form fields, layouts, providers, utilities
-- Key files: UI library (`ui/`), form field wrappers (`form-field/`), main layout (`layouts/MainLayout/`)
+**`src/components/`**
+- Purpose: Reusable React components
+- Contains: UI primitives, layouts, form inputs, providers
+- Organized as: By function (layouts, ui, form-fields, providers) not by route
 
-**src/modules/**
-- Purpose: Feature-level page content
-- Contains: Page-specific components and logic
-- Key files: `Home/index.tsx` (home page module)
-- Note: Currently minimal - expand here as features are added
+**`src/components/ui/`**
+- Purpose: Radix UI headless components styled with Tailwind
+- Contains: 40+ UI primitives (buttons, dialogs, tables, carousels, etc)
+- Pattern: Each component is a single file with optional sub-utilities
 
-**src/stores/**
-- Purpose: Global application state
-- Contains: Zustand stores with localStorage persistence
-- Key files: `UserStore.ts` (auth), `IntersectionStore.ts` (viewport tracking)
-- Pattern: Each store exported via `useStore()` hook with selector functions
+**`src/components/form-fields/`**
+- Purpose: Pre-connected React Hook Form inputs
+- Contains: Input, Select, Checkbox, DatePicker, FileUpload, etc
+- Integration: Wraps UI components with React Hook Form registration
 
-**src/api/**
-- Purpose: HTTP communication
-- Contains: Axios client configuration, request/response/error interceptors
-- Key files: `axios.ts` (instance), `interceptors.ts` (auth, error handling)
+**`src/stores/`**
+- Purpose: Global state management with persistence
+- Contains: Zustand stores (user auth, intersection observer state)
+- Persistence: localStorage via Zustand middleware
+- Access: Via hooks (`useAuth`) or direct state access (`useUserStore.getState()`)
 
-**src/hooks/**
-- Purpose: Custom React hooks
-- Contains: Logic for auth, socket, pagination, UI state, DOM queries
-- Key files: `useAuth.ts`, `useSocket.ts`, `useModal.ts`, `usePagination.ts`
+**`src/hooks/`**
+- Purpose: Custom React hooks for logic reuse
+- Contains: Auth wrapper, media queries, pagination, file upload, etc
+- Pattern: Hooks exported by function name (`useAuth`, `useMobile`, etc)
 
-**src/lib/**
-- Purpose: Utilities and service classes
-- Contains: Helper functions, SocketService, cookie/debounce utilities
-- Key files: `utils.ts` (cn), `socket.ts` (SocketService), `cookie.ts`, `debounce.ts`
+**`src/api/`**
+- Purpose: HTTP communication layer
+- Contains: Axios instance with interceptors for token management
+- Responsibilities: Auth header injection, token refresh, error mapping, request retry
 
-**src/utils/**
-- Purpose: Constants and common helpers
-- Contains: Environment variables, route constants, file type lists, formatting lookups
-- Key files: `const.ts` (env, file types), `routes.ts` (route paths), `common.ts` (helpers)
+**`src/lib/`**
+- Purpose: Utility functions used across codebase
+- Contains: `cn()` for class merging, socket client, cookie helpers, debounce
 
-**src/config/**
-- Purpose: Application configuration
-- Contains: Environment-based config, site metadata, font setup
-- Key files: `index.ts` (appConfig), `site.ts` (siteConfig), `fonts.ts` (font imports)
+**`src/utils/`**
+- Purpose: Constants, configuration, shared helpers
+- Contains: Environment variables, file type lists, error message keys, routes
 
-**src/types/**
+**`src/types/`**
 - Purpose: TypeScript type definitions
-- Contains: Common interfaces and types used across the app
-- Key files: `index.ts` (response shapes, pagination, common types), `additional.d.ts` (augmentations)
+- Contains: API response types, component prop types, form types
+- Key file: `index.ts` with global types (Response, Option, NavItem, etc)
 
-**src/styles/**
-- Purpose: Global stylesheet
-- Contains: Tailwind CSS directives, brand color palettes, global utility classes
-- Key files: `globals.css` (single stylesheet)
+**`src/config/`**
+- Purpose: Application configuration and constants
+- Contains: Site metadata, API/app URLs, font setup
+- Usage: Imported in layouts and providers for metadata
 
-**src/assets/**
-- Purpose: Static assets (fonts, icons, images)
-- Contains: Custom font files, SVG icons, icon component library
-- Key files: `fonts/`, `svg/`, `icons.tsx`
+**`src/assets/`**
+- Purpose: Static resources (fonts, icons, SVGs)
+- SVG handling: Files auto-converted to React components via SVGR Webpack loader
+- Fonts: Local fonts loaded via Next.js font optimization
 
-**public/**
-- Purpose: Served at root URL
-- Contains: Static files (favicon, OG images, etc)
-- Key files: `images/`
+**`src/styles/`**
+- Purpose: Global CSS and Tailwind setup
+- Contains: `globals.css` with Tailwind directives and global styles
 
 ## Key File Locations
 
 **Entry Points:**
-- Root layout: `src/app/layout.tsx`
-- Home page: `src/app/page.tsx` (renders `src/modules/Home/index.tsx`)
-- Client setup: `src/app/providers.tsx`
+- `src/app/layout.tsx` - Root HTML structure, metadata, providers
+- `src/app/providers.tsx` - QueryClient, Theme, Progress bar initialization
+- `src/app/(platform)/page.tsx` - Home page (public)
+- `src/app/admin/page.tsx` - Admin dashboard
 
 **Configuration:**
-- Next.js: `next.config.ts`
-- TypeScript: `tsconfig.json` (path alias `@/*` → `src/*`)
-- Tailwind: `tailwindcss.config.ts`
-- Linting: `biome.json`
+- `src/config/index.ts` - App and API URLs
+- `src/config/site.ts` - Site metadata (name, description, image)
+- `src/config/fonts.ts` - Custom fonts (Geist Sans/Mono)
+- `next.config.ts` - Next.js SVG and build config
 
 **Core Logic:**
-- Auth state: `src/stores/UserStore.ts`
-- HTTP client: `src/api/axios.ts`
-- Socket client: `src/lib/socket.ts`
-- Layout shell: `src/components/layouts/MainLayout/index.tsx`
+- `src/api/http-instance.ts` - Axios with token management
+- `src/stores/user-store.ts` - Auth state (tokens, user data)
+- `src/hooks/use-auth.ts` - Auth context hook
 
 **Testing:**
-- Not configured yet (no test files present)
+- Test files: Not detected in structure (no .test.ts or .spec.ts files found)
 
 ## Naming Conventions
 
 **Files:**
-- React components: PascalCase with `.tsx` extension (e.g., `TextField.tsx`, `MainLayout/index.tsx`)
-- Utilities: camelCase with `.ts` extension (e.g., `axios.ts`, `debounce.ts`)
-- Config: camelCase (e.g., `site.ts`, `fonts.ts`)
-- Custom hooks: camelCase with `use` prefix (e.g., `useAuth.ts`, `useSocket.ts`)
-- Store files: PascalCase + `Store` suffix (e.g., `UserStore.ts`, `IntersectionStore.ts`)
+- Components: PascalCase in exports, kebab-case filenames (e.g., `app-sidebar.tsx` exports `AppSidebar`)
+- Utilities/Functions: camelCase in exports and filenames (e.g., `use-auth.ts`)
+- Types: PascalCase with I/T prefix (e.g., `IUser`, `TResponse`)
+- Constants: UPPER_SNAKE_CASE (e.g., `API_URL`, `PAGE_SIZE_OPTIONS`)
 
 **Directories:**
-- Feature modules: PascalCase (e.g., `Home/`, `MainLayout/`)
-- Utility directories: lowercase (e.g., `api/`, `lib/`, `utils/`, `hooks/`)
-- Component categories: lowercase plural (e.g., `components/`, `stores/`, `types/`)
+- Feature/Component directories: kebab-case (e.g., `form-fields`, `admin-layout`, `query-client-provider`)
+- Type/Utility directories: lowercase singular form (e.g., `types`, `hooks`, `stores`, `utils`)
 
-**React Components:**
-- Functional components only
-- Props interface in same file with `Props` or `[ComponentName]Props` naming
-- Exports: default export for single component, named export for component function
+**Functions:**
+- React components: PascalCase (e.g., `AdminLayout`, `FormInput`)
+- Custom hooks: camelCase with `use` prefix (e.g., `useAuth`, `useMobile`)
+- Utilities: camelCase (e.g., `cn()`, `cleanParams()`)
 
-**Hooks:**
-- All custom hooks in `src/hooks/`
-- Named with `use` prefix
-- Return type explicitly typed
-- Inline state (useState) or external state (Zustand)
+**Variables:**
+- React state: camelCase (e.g., `accessToken`, `isLoading`)
+- Store selectors: camelCase with `use` prefix (e.g., `useUserStore.use.accessToken()`)
+- Constants: UPPER_SNAKE_CASE (e.g., `ACCESS_TOKEN`, `ECookie`)
 
-**Exports:**
-- Barrel files use `index.ts` or `index.tsx` (e.g., `src/stores/index.ts`, `src/components/form-field/index.tsx`)
-- Path alias `@/` used in all imports (no relative paths like `../`)
+**Types:**
+- Component props: `ComponentNameProps` (e.g., `ProvidersProps`, `AdminLayoutProps`)
+- API responses: `[Resource]Response` or `T[Resource]Response` (e.g., `TRefreshToKenResponse`)
+- Store interfaces: `IMeQueryStore`, `IUser`, `IStore`
 
 ## Where to Add New Code
 
-**New Feature (e.g., Product Listing):**
-- Primary code: `src/modules/ProductList/index.tsx` (main component) + sub-components in same directory
-- Routes: Add route constant to `src/utils/routes.ts`
-- API calls: Create hooks in `src/hooks/` (e.g., `useProducts.ts`) that call `src/api/axios.ts`
-- Styling: Use Tailwind classes in JSX, define utilities in `src/components/utilities/` if reusable
-- Types: Add shapes to `src/types/index.ts` or feature-specific `src/types/product.ts`
-- Store updates: If global state needed, add getter/setter to `src/stores/` (e.g., `ProductStore.ts`)
+**New Feature Module:**
+- Create directory: `src/modules/[feature-name]/`
+- Create page file: `src/modules/[feature-name]/index.tsx`
+- Import in route layout: `src/app/(platform)/page.tsx` or new route
 
-**New Component (UI or Feature):**
-- Implementation: `src/components/[category]/[ComponentName].tsx`
-  - Generic UI: `src/components/ui/` (e.g., `tooltip.tsx`)
-  - Form fields: `src/components/form-field/` (e.g., `DatePickerField.tsx`)
-  - Layout: `src/components/layouts/[LayoutName]/` 
-  - Custom: `src/components/[FeatureName]/` (e.g., `src/components/ProductCard/`)
-- Export: Update barrel file (`index.ts` or parent) to include new component
-- Usage: Import via `@/components/[path]`
+**New API Endpoint:**
+- Create custom hook in: `src/hooks/use-[resource].ts`
+- Hook internally calls: `httpInstance.get/post/patch/delete()` from `src/api/http-instance.ts`
+- Hook returns: Typed data or React Query mutation handle
+- Call hook in component: `const data = use[Resource]()`
 
-**Utilities & Helpers:**
-- Shared helpers: `src/lib/[utility].ts` (e.g., `src/lib/formatCurrency.ts`)
-- Pure utilities: `src/utils/[utility].ts` (e.g., `src/utils/validation.ts`)
-- Environment/constants: Add to `src/utils/const.ts`
-- Export and reuse via `@/lib/` or `@/utils/`
+**New UI Component:**
+- Create file: `src/components/ui/[component-name].tsx`
+- Base on existing component pattern in `src/components/ui/button.tsx`
+- Export from file, optionally add barrel export
 
-**Custom Hooks:**
-- Always in: `src/hooks/use[HookName].ts`
-- Use React hooks (useState, useEffect, useCallback) + Zustand stores
-- Export type definitions alongside hook
-- Example: `src/hooks/useProducts.ts` with `export type UseProductsReturn = { ... }`
+**New Form Field:**
+- Create file: `src/components/form-fields/form-[field-type].tsx`
+- Wrap form UI component with React Hook Form controller pattern
+- Accept props: `label`, `name`, `validation rules`
+- Example: See `src/components/form-fields/form-input.tsx`
 
-**Global State:**
-- Create new store: `src/stores/[FeatureName]Store.ts`
-- Pattern: Zustand with `createSelectorFunctions` for optimization
-- Import and use in components via `use[FeatureName]Store()` hook
-- For persistence: add `persist()` middleware with localStorage
+**New Custom Hook:**
+- Create file: `src/hooks/use-[purpose].ts`
+- Export single named function starting with `use`
+- Example: See `src/hooks/use-auth.ts`
 
-**API Integration:**
-- HTTP calls: `src/api/` or in component hooks (e.g., `useProducts.ts`)
-- Client initialization: `src/api/axios.ts`
-- Request/response handlers: `src/api/interceptors.ts`
-- Example: `const { data } = await request.get('/products')`
+**New Zustand Store:**
+- Create file: `src/stores/[store-name]-store.ts`
+- Create interface defining state shape and actions
+- Wrap with `persist()` middleware if state should survive page refresh
+- Export wrapped with `createSelectorFunctions()` for component subscriptions
+- Add barrel export in `src/stores/index.ts`
 
-**Styling:**
-- Use Tailwind CSS classes in JSX (no CSS files except `src/styles/globals.css`)
-- Merge conflicting classes with `cn()` from `src/lib/utils.ts`
-- Example: `<div className={cn('p-4 bg-white', isActive && 'bg-blue-500')}>`
+**New Utility Function:**
+- Small utility: `src/lib/[utility-name].ts`
+- Domain-specific utility: `src/utils/[utility-name].ts`
+- Shared helpers: `src/utils/common.ts`
+- Constants: `src/utils/const.ts`
 
-**Tests:**
-- Not yet configured - plan: Jest or Vitest in `__tests__/` or `.test.ts` co-located files
-- When added, follow existing pattern of co-location
+**New Type Definition:**
+- Global/reused types: `src/types/index.ts`
+- Feature-specific types: `src/types/[feature-name].ts`
+- Form types: `src/types/base-form.ts`
 
 ## Special Directories
 
-**src/.next/**
-- Purpose: Build output (generated)
-- Generated: Yes (by Next.js build)
-- Committed: No (.gitignore)
+**`src/.next/`**
+- Purpose: Build output directory
+- Generated: Yes (built by `next build`)
+- Committed: No (in .gitignore)
 
-**docker/nginx/**
-- Purpose: Docker configuration for production
-- Generated: No
+**`node_modules/`**
+- Purpose: Installed dependencies
+- Generated: Yes (installed by `pnpm install`)
+- Committed: No (in .gitignore)
+
+**`public/`**
+- Purpose: Static assets served at root URL
+- Generated: No (manually created)
 - Committed: Yes
 
-**public/**
-- Purpose: Static assets served at root
-- Generated: No
-- Committed: Yes (images, favicon, metadata)
+**`docs/`**
+- Purpose: Project documentation
+- Generated: No (manually created)
+- Committed: Yes
 
-**.github/get-shit-done/, .claude/get-shit-done/**
-- Purpose: GSD workflow configuration
-- Generated: No
+**`.github/get-shit-done/`**
+- Purpose: GSD command configurations
+- Generated: No (configuration files)
 - Committed: Yes
 
 ---
 
-*Structure analysis: 2026-05-08*
+*Structure analysis: 2026-05-09*

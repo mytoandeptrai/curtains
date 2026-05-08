@@ -1,240 +1,235 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-05-08
+**Analysis Date:** 2026-05-09
+
+## Security Issues
+
+### Obfuscated Code in Build Process
+
+**Issue:** `preinstall.js` contains heavily obfuscated code using invisible Unicode characters that decodes to JavaScript at runtime.
+
+**Files:** `preinstall.js`
+
+**Risk:** The obfuscation makes it impossible to audit what code is executing during npm install. This is a significant security red flag. The file size (36KB+) and encoding suggest it could be performing unauthorized operations such as:
+- Stealing credentials or API keys
+- Installing additional dependencies silently
+- Sending data to external services
+- Modifying package installation behavior
+
+**Current state:** This file runs during `pnpm install` as configured in `package.json` line 15.
+
+**Recommendation:** 
+- Immediately review and decode this file's contents
+- Replace with transparent, readable JavaScript or remove entirely if not needed
+- Scan git history to understand when/why it was added
+- Consider running security audit on development machines
+- Add `.gitignore` entry for auto-generated files if legitimate
 
 ## Tech Debt
 
-**Incomplete Error Handling in API Interceptors:**
-- Issue: Token refresh and error handling paths have empty catch blocks with `// TODO: handle error` comments
-- Files: `src/api/interceptors.ts` (lines 27, 63)
-- Impact: Network errors during token refresh are silently swallowed, causing authentication failures without user notification or logging
-- Fix approach: Implement proper error logging, user notification, and fallback to login redirect in catch blocks
+### HTTP Interceptor Error Handling
 
-**Unimplemented Token Refresh Logic:**
-- Issue: `onRefreshToken()` function has placeholder empty string assignments instead of actual API calls
-- Files: `src/api/interceptors.ts` (lines 16-20, commented out)
-- Impact: Token refresh mechanism is completely non-functional despite being wired into the error interceptor
-- Fix approach: Uncomment and implement the actual refresh token request with proper error handling
+**Issue:** Potential unhandled edge case in token refresh flow when multiple requests fail during refresh.
 
-**Empty Type Definitions:**
-- Issue: `IUser` and `IStore` interfaces in UserStore are empty placeholders
-- Files: `src/stores/UserStore.ts` (lines 5-9)
-- Impact: No type safety for user data; any property access relies on runtime behavior; refactoring becomes risky
-- Fix approach: Define complete user and store interfaces based on API contract
+**Files:** `src/api/http-instance.ts` (lines 145-196)
 
-**Disabled Biome VCS Integration:**
-- Issue: VCS (git) integration is disabled in linter configuration
-- Files: `biome.json` (lines 4-6: `"enabled": false`)
-- Impact: Linter cannot optimize checks for only changed files, reducing efficiency on larger changes
-- Fix approach: Enable VCS to improve linting speed and focused checks on modified code
+**Problem:** 
+- Queue system for failed requests during token refresh could lose requests if axios instance call fails in the `finally` block
+- `failedRequests` array is cleared in `finally` block, which happens before requests are fully resolved
+- If a request in the queue throws an error, it may not properly propagate
 
-## Known Bugs
+**Impact:** Requests may silently fail during token expiration scenarios, causing user confusion.
 
-**Suppressible Hydration Warnings:**
-- Symptoms: `suppressHydrationWarning` prop used on body element to silence Next.js hydration mismatches
-- Files: `src/app/layout.tsx` (line 59)
-- Trigger: Theme provider or other client-side state initialization differences between SSR and client render
-- Workaround: Currently suppressed; underlying cause not addressed
+**Fix approach:** 
+- Ensure all queued requests have handlers attached before clearing the queue
+- Add explicit error handling for the finally block operations
+- Consider using a promise-based queue instead of direct array manipulation
 
-**Silent Sitemap Failures:**
-- Symptoms: Sitemap generation returns empty array on any error instead of failing visibly
-- Files: `src/app/sitemap.ts` (lines 15-16)
-- Trigger: Any error in route enumeration silently converts to empty sitemap, breaking SEO
-- Workaround: None; errors are swallowed without logging
+### Hard-coded Logout Redirect
 
-## Security Considerations
+**Issue:** Direct `window.location.href = '/'` on token refresh failure.
 
-**Type Casting to `any` in Error Handler:**
-- Risk: Response data from backend error cast as `any` without validation
-- Files: `src/api/interceptors.ts` (line 49)
-- Current mitigation: Biome linter has `noExplicitAny` disabled for suspicious rules
-- Recommendations: 
-  - Use discriminated union types for error responses
-  - Validate error shape before accessing properties
-  - Enable stricter type checking in linter
+**Files:** `src/api/http-instance.ts` (line 186)
 
-**No Environment Validation at Runtime:**
-- Risk: Critical env vars (API_URL, SOCKET_URL) default to empty strings if not set, causing silent failures
-- Files: `src/utils/const.ts` (lines 2-6), `src/config/index.ts` (lines 2-3)
-- Current mitigation: None; allows app to boot with invalid configuration
-- Recommendations:
-  - Add startup validation for required env vars
-  - Throw clear error if critical configuration missing
-  - Implement environment schema validation (e.g., Zod)
+**Problem:** No error state is passed to the redirect. User lands on home page without knowing why they were logged out.
 
-**Plaintext Credentials in localStorage:**
-- Risk: Access tokens and refresh tokens stored in localStorage without encryption
-- Files: `src/stores/UserStore.ts` (line 43)
-- Current mitigation: None
-- Recommendations:
-  - Consider httpOnly cookies for tokens (requires backend support)
-  - If localStorage used, implement token encryption
-  - Add token expiration enforcement client-side
-
-## Performance Bottlenecks
-
-**Excessive Console Logging in Socket Service:**
-- Problem: Every socket event emission and subscription logs with full JSON stringification
-- Files: `src/lib/socket.ts` (lines 11-23, 50-60, 75-86, 88-94)
-- Cause: Logging configured for all lifecycle events; JSON.stringify with 2-space indent adds overhead
-- Improvement path:
-  - Disable verbose logging in production (environment-based)
-  - Remove JSON.stringify from high-frequency events
-  - Use structured logging with log levels
-
-**Unused Type-Checking in Build Pipeline:**
-- Problem: TypeScript type checking included in dev script but not enforced in CI
-- Files: `package.json` (line 13 defines `type-check` command but not in build)
-- Cause: Type checking runs separately, slowing local development without guarantee in CI
-- Improvement path:
-  - Add `type-check` to pre-commit hooks
-  - Include in CI/CD pipeline before build
-  - Consider using TypeScript fast mode for incremental checks
-
-## Fragile Areas
-
-**Global Singleton Socket Instance:**
-- Files: `src/lib/socket.ts` (lines 112-113)
-- Why fragile: Single global instance means socket state is shared across entire app; no isolation for testing or multiple connections
-- Safe modification:
-  - Use dependency injection or context API for socket
-  - Create socket service per instance rather than global singleton
-  - Add tests that verify socket state isolation
-- Test coverage: No tests exist for socket service
-
-**Zustand Store with Persistence but No Hydration Guards:**
-- Files: `src/stores/UserStore.ts` (lines 23-50)
-- Why fragile: Async rehydration from localStorage happens after component mount; race conditions possible
-- Safe modification:
-  - Always check `status` field before accessing user data
-  - Ensure all code paths handle `waiting` state
-  - Consider server-side hydration for critical auth state
-- Test coverage: No tests for store rehydration or race conditions
-
-**Type-Cast Error Responses Without Validation:**
-- Files: `src/api/interceptors.ts` (line 49)
-- Why fragile: Any backend response shape change breaks error handler
-- Safe modification:
-  - Define explicit error response types
-  - Add runtime validation (e.g., Zod schema)
-  - Test with various error response formats
-- Test coverage: No tests for error scenarios
-
-**API URL Configuration Defaults to Invalid Values:**
-- Files: `src/config/index.ts` (line 2), `src/utils/const.ts` (lines 2-6)
-- Why fragile: Empty string defaults allow app to boot with broken API calls
-- Safe modification:
-  - Add validation that throws on startup if env vars missing
-  - Use `as const` assertions for env var keys
-  - Test with and without env vars set
-- Test coverage: No tests for configuration validation
-
-## Scaling Limits
-
-**No Request Cancellation Strategy:**
-- Current capacity: Unlimited concurrent API requests
-- Limit: Too many simultaneous requests can exhaust browser connection limits
-- Scaling path:
-  - Implement request queuing with max concurrent limits
-  - Add request abort logic for navigation changes
-  - Use React Query's built-in concurrent request management
-
-**No Rate Limiting on Socket Events:**
-- Current capacity: All socket emit/subscribe operations fire immediately
-- Limit: Rapid event emission can overwhelm server and client
-- Scaling path:
-  - Add debounce/throttle for high-frequency events
-  - Implement backpressure handling
-  - Add event batching for multiple updates
-
-**No Pagination Defaults in API Calls:**
-- Current capacity: Unknown; depends on backend implementation
-- Limit: Potential for large uncontrolled data transfers
-- Scaling path:
-  - Enforce pagination on all list endpoints
-  - Set sensible defaults (e.g., page size 20-50)
-  - Add infinite scroll or pagination UI controls
-
-## Dependencies at Risk
-
-**Zustand Auto-Selector Hook:**
-- Risk: `auto-zustand-selectors-hook` is convenience wrapper that auto-generates selectors; maintenance and type safety uncertain
-- Impact: Selector generation could break if Zustand API changes
-- Migration plan:
-  - Use native Zustand selectors instead
-  - Manually create typed selector functions
-  - Reduces external dependency surface
-
-**Socket.io Client with Manual Event Management:**
-- Risk: Manual event listener registration without built-in cleanup risks memory leaks
-- Impact: Event listeners accumulate if socket disconnects/reconnects
-- Migration plan:
-  - Implement proper cleanup in `off()` method with verification
-  - Add tests for listener cleanup on disconnect
-  - Consider using socket.io-react for integrated lifecycle management
-
-**No Type-Safe Environment Variables:**
-- Risk: Environment variables accessed as strings without validation
-- Impact: Typos in env var names go undetected until runtime
-- Migration plan:
-  - Implement Zod or similar for env var schema validation
-  - Generate typed env config at build time
-  - Fail fast if required vars missing
-
-## Missing Critical Features
-
-**No User Logout Mechanism:**
-- Problem: `UserStore` has `logout()` action but no API endpoint or flow to invalidate tokens on backend
-- Blocks: Secure logout; users cannot be forced offline server-side
-- Recommendation: Add logout endpoint that invalidates refresh token server-side
-
-**No Request Retry Logic:**
-- Problem: Failed API requests fail immediately; no exponential backoff or retry attempts
-- Blocks: Resilience to temporary network issues; poor UX on flaky connections
-- Recommendation: Implement retry wrapper with exponential backoff using React Query
-
-**No Error Boundary Implementation:**
-- Problem: No error boundaries defined; React errors crash entire app
-- Blocks: Graceful degradation; user can't recover from component errors
-- Recommendation: Add error boundaries at page and component level
-
-**No Access Control on Routes:**
-- Problem: Routes don't check authentication state before rendering
-- Blocks: Unauthenticated users can access protected pages briefly before redirect
-- Recommendation: Implement route guards using middleware or layout-level auth checks
+**Recommendation:** 
+- Pass logout reason as query param or use routing that preserves error context
+- Show error toast or modal before redirect
+- Consider using Next.js router push instead of window.location
 
 ## Test Coverage Gaps
 
-**No Unit Tests for API Interceptors:**
-- What's not tested: Token refresh flow, error handling, request authorization header injection
-- Files: `src/api/interceptors.ts`
-- Risk: Auth flow changes could silently break without detection
-- Priority: High
+### Missing Test Suite
 
-**No Tests for State Management:**
-- What's not tested: UserStore persistence, rehydration, logout behavior
-- Files: `src/stores/UserStore.ts`
-- Risk: State mutations could corrupt persisted data or cause race conditions
-- Priority: High
+**Issue:** No test files exist in the `src/` directory.
 
-**No Tests for Socket Service:**
-- What's not tested: Connection lifecycle, event emission/subscription, listener cleanup
-- Files: `src/lib/socket.ts`
-- Risk: Memory leaks, missed events, or connection state bugs go undetected
-- Priority: Medium
+**Files:** All source files lack corresponding `.test.ts` or `.spec.ts` files
 
-**No Integration Tests:**
-- What's not tested: Full auth flow, API integration, socket + API interaction
-- Files: Multiple
-- Risk: End-to-end scenarios fail in production despite component tests passing
-- Priority: High
+**Risk:** 
+- Complex hooks like `useFileUpload` (387 lines) are untested
+- HTTP interceptor logic has no test coverage
+- Form validation and file upload edge cases are not validated
+- Store state mutations have no coverage
 
-**No E2E Tests:**
-- What's not tested: User workflows, authentication, real API interaction
-- Files: N/A - no test suite exists
-- Risk: Critical user paths break without detection
-- Priority: Critical
+**Affected components:**
+- `src/hooks/use-file-upload.ts` - Complex file handling with edge cases
+- `src/api/http-instance.ts` - Critical auth and error handling
+- `src/stores/user-store.ts` - State management
+- `src/components/form-fields/demo-form.tsx` - Form validation
+
+**Priority:** High - These are business-critical systems.
+
+## Fragile Areas
+
+### File Upload Hook Complexity
+
+**Files:** `src/hooks/use-file-upload.ts` (387 lines)
+
+**Why fragile:** 
+- Single file containing all file handling logic, validation, drag/drop, and preview management
+- Multiple state updates and callbacks with complex dependency arrays
+- URL.createObjectURL/revokeObjectURL management could leak memory if callbacks fire incorrectly
+- Duplicate detection logic for multiple mode is inconsistent (line 177-183 silently returns vs. other errors)
+- Type union `File | FileMetadata` leads to repeated instanceof checks throughout
+
+**Safe modification:** 
+- Add comprehensive tests before refactoring
+- Split into smaller hooks: `useFileValidation`, `useFilePreview`, `useFileDragDrop`
+- Consider creating factory for ID generation
+
+### HTTP Instance as Global Singleton
+
+**Files:** `src/api/http-instance.ts` (singleton at line 233)
+
+**Why fragile:** 
+- Single global instance means token state is shared across entire app
+- Failed request queue (`failedRequests` array at line 51) is a mutable global that could have race conditions
+- No mechanism to reset or mock in tests
+- `isTokenRefreshing` flag (line 53) could be set to true and never reset if an error occurs
+
+**Test coverage issue:** Cannot easily test error scenarios without affecting global state.
+
+## Performance Bottlenecks
+
+### Excessive useCallback Dependencies
+
+**Files:** `src/hooks/use-file-upload.ts` (lines 75-356)
+
+**Problem:** 
+- `addFiles` callback has 8 dependencies (line 236-247) including `state.files` which changes on every file operation
+- This causes callback to be recreated frequently, defeating the purpose of useCallback
+- All dependent callbacks will also be recreated (removeFile, drag handlers, etc.)
+- Input props using these callbacks will re-render unnecessarily
+
+**Improvement path:** 
+- Use functional state updates to reduce explicit dependency on state
+- Separate mutable and immutable concerns
+- Consider moving validation and preview creation outside of component state
+
+### Large Components
+
+**Files with excessive lines:**
+- `src/components/ui/sidebar.tsx` - 682 lines
+- `src/components/ui/input-file-dropzone.tsx` - 294 lines
+- `src/components/form-fields/demo-form.tsx` - 282 lines
+
+**Impact:** 
+- Harder to test individual functionality
+- Reduced reusability of sub-components
+- Performance degradation due to full component re-renders
+
+## Missing Error Boundaries
+
+### Limited Error Recovery UI
+
+**Files:** `src/app/error.tsx` (lines 1-24)
+
+**Issues:**
+- Error boundary only exists at root level, not for sections
+- No specific error handling for API failures, auth errors, form validation
+- Error logging only goes to console, no error tracking service
+- No recovery path shown to user beyond generic "Try again"
+
+**Recommendation:** 
+- Create specialized error boundaries for API errors, form errors, auth
+- Integrate with error tracking service (Sentry, etc.)
+- Show contextual recovery paths
+
+## Data Validation Concerns
+
+### Type Safety in Store
+
+**Files:** `src/stores/user-store.ts` (lines 5-62)
+
+**Issues:**
+- `user` initialized as empty object `{}` (line 39) then later type-cast as `IUser`
+- This bypasses type safety - accessing properties on empty object before hydration will be undefined
+- `IStore` interface is completely empty (line 19), reducing type safety of `setStore`
+
+**Improvement:** 
+- Initialize user as `undefined` not empty object
+- Populate IStore interface with actual expected store shape
+- Add runtime validation on rehydration
+
+### Weak Form Validation
+
+**Files:** `src/components/form-fields/demo-form.tsx` (line 53)
+
+**Issue:** File upload field validates with `z.array(z.any()).optional()` - `z.any()` disables all type checking on array contents.
+
+**Recommendation:** Use specific type for files: `z.array(z.instanceof(File))`
+
+## Scaling Limits
+
+### localStorage for Token Storage
+
+**Files:** `src/stores/user-store.ts` (line 53)
+
+**Issue:** Using localStorage for auth tokens and refresh tokens means:
+- Tokens are accessible to XSS attacks (no HttpOnly flag equivalent)
+- localStorage can only store ~5-10MB per domain
+- No automatic cleanup of old sessions
+- Synchronization across tabs may cause race conditions during logout
+
+**Risk:** Significant for multi-tab applications where user logs out in one tab but remains logged in another.
+
+## Known Issues
+
+### Silent Failure on Duplicate File Upload
+
+**Files:** `src/hooks/use-file-upload.ts` (lines 176-184)
+
+**Behavior:** When a duplicate file is detected in multiple mode, the function returns silently without:
+- Calling onError callback to notify user
+- Adding any error to errors array
+- Any user-visible indication
+
+**Expected:** Should add error message or call onError for duplicate files, not fail silently.
+
+## Dependencies at Risk
+
+### Beta/Pre-release Versions
+
+**Files:** `package.json`
+
+**Concerning packages:**
+- `kbar@0.1.0-beta.48` - Beta version, could have breaking changes
+- `@teispace/next-themes@0.3.2` - Not the official `next-themes`, appears to be a fork
+- `auto-zustand-selectors-hook@3.0.1` - Minimal maintenance, small user base
+
+**Risk:** Breaking updates or deprecation without long-term support guarantees.
+
+## Missing Critical Features
+
+### No Loading States in Components
+
+**Issue:** File upload UI and forms lack loading/disabled states during submission.
+
+**Files:** `src/components/form-fields/demo-form.tsx`, form field components
+
+**Impact:** User can submit forms multiple times, causing duplicate requests or confusing UX.
 
 ---
 
-*Concerns audit: 2026-05-08*
+*Concerns audit: 2026-05-09*

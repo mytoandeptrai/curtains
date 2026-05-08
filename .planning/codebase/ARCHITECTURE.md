@@ -1,253 +1,261 @@
-<!-- refreshed: 2026-05-08 -->
+<!-- refreshed: 2026-05-09 -->
 # Architecture
 
-**Analysis Date:** 2026-05-08
+**Analysis Date:** 2026-05-09
 
 ## System Overview
 
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│                           Next.js App Router                             │
-│                          `src/app/layout.tsx`                            │
-├─────────────────────────────────────────────────────────────────────────┤
-│  Root Providers                    │  Main Layout                        │
-│  `src/app/providers.tsx`           │  `src/components/layouts/...`      │
-│  - QueryClientProvider             │  - Header                          │
-│  - ThemeProvider                   │  - Footer                          │
-│  - Progress Bar                    │  - Main Content Area               │
-└─────────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│                         Modules & Components                             │
-│  `src/modules/Home`    │  `src/components/form-field`   │  `src/components/ui`  │
-└──────────────────────────────────────────────────────────────────────────┘
-                                   │
-                    ┌──────────────┼──────────────┐
-                    ▼              ▼              ▼
-        ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-        │  State & Stores  │  │   HTTP & API     │  │   Real-time      │
-        │  `src/stores/`   │  │   `src/api/`     │  │   `src/lib/socket`│
-        │  - UserStore     │  │   - axios.ts     │  │   - SocketService │
-        │  - Intersection  │  │   - interceptors │  │   - useSocket hook│
-        │                  │  │                  │  │                  │
-        └──────────────────┘  └──────────────────┘  └──────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│              Next.js Root Layout (SSR/SSG)                  │
+│           `src/app/layout.tsx`                              │
+│  Providers: Theme, QueryClient, Progress Bar                │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+         ┌───────────┴───────────┐
+         │                       │
+         ▼                       ▼
+    ┌─────────────┐         ┌──────────────┐
+    │   Platform  │         │    Admin     │
+    │   Portal    │         │    Portal    │
+    └──────┬──────┘         └──────┬───────┘
+           │                       │
+           ▼                       ▼
+    ┌──────────────────┐    ┌────────────────┐
+    │  MainLayout      │    │  AdminLayout   │
+    │  (Header/Footer) │    │  (Sidebar)     │
+    │ `components/     │    │ `components/   │
+    │  layouts/main`   │    │  layouts/admin`│
+    └────────┬─────────┘    └────────┬───────┘
+             │                       │
+             ▼                       ▼
+    ┌──────────────────┐    ┌────────────────┐
+    │    Modules       │    │   Admin Page   │
+    │  `src/modules/   │    │ `src/app/admin/│
+    │  home/index.tsx` │    │  page.tsx`     │
+    └──────────────────┘    └────────────────┘
+             │
+             ▼
+    ┌──────────────────────────┐
+    │  Components (UI/Forms)   │
+    │  `src/components/`       │
+    │  - Form Fields           │
+    │  - UI Components         │
+    │  - Utilities             │
+    └──────────────────────────┘
+             │
+             ▼
+    ┌──────────────────────────┐
+    │   State Management       │
+    │   Zustand Stores         │
+    │  `src/stores/`           │
+    │  - UserStore             │
+    │  - IntersectionStore     │
+    └──────────┬───────────────┘
+               │
+               ▼
+    ┌──────────────────────────┐
+    │   HTTP/API Layer         │
+    │   Axios Instance         │
+    │  `src/api/http-instance` │
+    │  - Token Management      │
+    │  - Interceptors          │
+    │  - Error Handling        │
+    └──────────┬───────────────┘
+               │
+               ▼
+    ┌──────────────────────────┐
+    │   External API Server    │
+    │  (Backend Service)       │
+    └──────────────────────────┘
 ```
 
 ## Component Responsibilities
 
 | Component | Responsibility | File |
 |-----------|----------------|------|
-| Root Layout | Metadata, global styles, providers | `src/app/layout.tsx` |
-| Providers | Query client, theme, progress bar | `src/app/providers.tsx` |
-| MainLayout | Page structure (header, footer, main) | `src/components/layouts/MainLayout/index.tsx` |
-| Home Module | Home page content | `src/modules/Home/index.tsx` |
-| UserStore | User auth state, persistence | `src/stores/UserStore.ts` |
-| IntersectionStore | Viewport intersection tracking | `src/stores/IntersectionStore.ts` |
-| API Request | HTTP client, auth interceptors | `src/api/axios.ts`, `src/api/interceptors.ts` |
-| Socket Service | Real-time communication | `src/lib/socket.ts` |
+| Root Layout | HTML structure, metadata, global providers | `src/app/layout.tsx` |
+| Providers | Theme, React Query, Progress tracking | `src/app/providers.tsx` |
+| Platform Layout | Main public/user-facing UI template | `src/components/layouts/main-layout/index.tsx` |
+| Admin Layout | Admin dashboard UI with sidebar | `src/components/layouts/admin-layout/index.tsx` |
+| Form Fields | Reusable form input components | `src/components/form-fields/` |
+| UI Components | Radix UI based components (buttons, dialogs, etc) | `src/components/ui/` |
+| Utilities | Layout helpers (HStack, VStack, animations) | `src/components/utilities/` |
+| User Store | Global auth state (tokens, user data) | `src/stores/user-store.ts` |
+| HTTP Instance | Axios with auth, refresh, error handling | `src/api/http-instance.ts` |
 
 ## Pattern Overview
 
-**Overall:** Next.js 16 SSR/Client Hybrid with Zustand State + Radix UI Components
+**Overall:** Modular Next.js 16 frontend with Zustand for state management, Axios with interceptors for API communication, and Radix UI components for UI.
 
 **Key Characteristics:**
-- Server-side rendering for metadata and initial layout
-- Client-side hydration with Providers (QueryClient, Theme, Progress)
-- Zustand stores with localStorage persistence
-- Radix UI component library with Tailwind CSS
-- Axios HTTP client with request/response interceptors
-- Socket.io for real-time communication
-- React Hook Form for form management
+- Server and client component separation (Next.js 14+ App Router)
+- Centralized Zustand stores with localStorage persistence
+- Request/response interceptors for token management and error handling
+- Radix UI primitives wrapped with Tailwind CSS styling
+- Form-first architecture using React Hook Form + Zod validation
+- Layout-based routing with platform (public) and admin routes
 
 ## Layers
 
-**Presentation Layer (Components):**
-- Purpose: UI rendering and user interaction
-- Location: `src/components/`
-- Contains: UI primitives (`ui/`), form fields (`form-field/`), layouts (`layouts/`), providers (`providers/`), utilities (`utilities/`)
-- Depends on: hooks, utils, styles, types
-- Used by: modules, pages
+**Presentation Layer:**
+- Purpose: Render UI, handle user interactions, display forms
+- Location: `src/components/`, `src/app/(platform)/`, `src/app/admin/`
+- Contains: React components, layouts, pages
+- Depends on: Zustand stores, custom hooks, API layer
+- Used by: Next.js routing system
 
-**Module Layer:**
-- Purpose: Feature-level page content
-- Location: `src/modules/`
-- Contains: Feature components and their logic
-- Depends on: components, hooks, stores, API
-- Used by: App Router pages
+**Logic/Hook Layer:**
+- Purpose: Encapsulate reusable component logic, state management patterns
+- Location: `src/hooks/`
+- Contains: Custom React hooks for auth, pagination, debouncing, media queries
+- Depends on: Stores, utils, external libraries (React)
+- Used by: Presentation components
 
 **State Management Layer:**
-- Purpose: Global state storage and retrieval
+- Purpose: Centralized application state, persistence
 - Location: `src/stores/`
-- Contains: Zustand stores with persistence
-- Depends on: types, lib utilities
-- Used by: components, hooks, API interceptors
+- Contains: Zustand stores with persistence middleware
+- Depends on: localStorage, Zustand
+- Used by: Components via custom hooks (`useAuth` in `src/hooks/use-auth.ts`)
 
-**Data Access Layer:**
-- Purpose: HTTP communication and authentication
-- Location: `src/api/`
-- Contains: Axios instance, request/response interceptors
-- Depends on: stores, utils/const
-- Used by: components, hooks, modules
+**API/HTTP Layer:**
+- Purpose: Handle all backend communication, token management, retry logic
+- Location: `src/api/http-instance.ts`
+- Contains: Axios instance with request/response interceptors
+- Depends on: Zustand stores (for tokens), external backend API
+- Used by: Components and custom hooks that fetch data
 
-**Real-time Layer:**
-- Purpose: WebSocket communication
-- Location: `src/lib/socket.ts`, `src/hooks/useSocket.ts`
-- Contains: SocketService class, useSocket hook
-- Depends on: utils/const
-- Used by: components, modules
-
-**Utility & Config Layer:**
-- Purpose: Helpers, constants, configuration
-- Location: `src/lib/`, `src/utils/`, `src/config/`, `src/hooks/`
-- Contains: Formatting, routing, environment configuration, custom hooks
-- Depends on: types
-- Used by: all layers
-
-**Type Layer:**
-- Purpose: TypeScript definitions
-- Location: `src/types/`
-- Contains: Response shapes, component props, common types
-- Used by: all layers
+**Utilities/Configuration:**
+- Purpose: Constants, helpers, configuration
+- Location: `src/utils/`, `src/config/`, `src/lib/`
+- Contains: Environment variables, format helpers, constants
+- Depends on: Standard JS
+- Used by: All layers
 
 ## Data Flow
 
-### Primary Request Path (Page Load)
+### Primary Request Path (Authenticated API Call)
 
-1. Browser requests `/` → Next.js App Router (`src/app/page.tsx`)
-2. Page component imports Home module (`src/modules/Home/index.tsx`)
-3. Root Layout wraps with Providers (`src/app/layout.tsx` → `src/app/providers.tsx`)
-4. Providers initialize:
-   - QueryClientProvider (TanStack Query)
-   - ThemeProvider (system/light/dark)
-   - Progress bar component
-5. MainLayout renders with Header/Footer (`src/components/layouts/MainLayout/index.tsx`)
-6. Home component renders page content
-7. Client hydration completes, interactive state available
+1. **Component renders** (`src/components/`) - User interacts with form
+2. **Custom hook or direct store access** (`src/hooks/use-auth.ts`) - Component gets current auth state
+3. **HTTP request initiated** (`src/api/http-instance.ts`) - Request interceptor adds Authorization header
+4. **Zustand store provides token** (`src/stores/user-store.ts`) - `useUserStore.getState().accessToken`
+5. **Response interceptor processes** (`src/api/http-instance.ts:123-199`) - Strips data wrapper, handles errors
+6. **Token refresh if needed** - If 401 TOKEN_EXPIRED, refresh token endpoint called
+7. **Failed requests retried** - Queued requests re-executed after token refresh
+8. **Component updates via React Query or useState** - UI re-renders with fresh data
 
 ### Authentication Flow
 
-1. Component calls `useAuth()` hook (`src/hooks/useAuth.ts`)
-2. Hook reads from `useUserStore` (Zustand state with localStorage)
-3. On login: component calls `setUserData()` with `{ accessToken, refreshToken, user }`
-4. Store persists to localStorage via `zustand/middleware/persist`
-5. On subsequent requests, `requestInterceptor` (`src/api/interceptors.ts`) attaches `Authorization: Bearer ${token}` header
-6. If 401 response: `errorInterceptor` calls `onRefreshToken()` to refresh token via store
-
-### Real-time Communication
-
-1. Component calls `useSocket()` hook (`src/hooks/useSocket.ts`)
-2. Hook accesses singleton socket instance (`src/lib/socket.ts` line 20-28)
-3. Socket.io client configured with auto-reconnect
-4. Component subscribes to events with `on()` callback
-5. Server sends events, callbacks fire with data
-6. Component unsubscribes with `off()` on cleanup
+1. User logs in via form submission
+2. Component calls `useAuth().setUserData()` (`src/hooks/use-auth.ts:20-24`)
+3. Store updated: `setUser()`, `setAccessToken()`, `setRefreshToken()`
+4. localStorage auto-synced by persist middleware
+5. HTTP interceptor reads tokens on next request
+6. On token expiry (401), refresh endpoint called with refreshToken
+7. Tokens updated in store, failed requests replayed
+8. On refresh failure, user logged out and redirected to home
 
 **State Management:**
-- Global state: Zustand stores in `src/stores/` with localStorage persistence
-- Query state: TanStack Query via `QueryClientProvider` with 5-second stale time
-- UI state: React useState for local component state
-- URL state: hooks like `useSearchParams()` for query parameters
+- User auth state (tokens, user info) persisted to localStorage
+- Zustand rehydration on mount sets `status: 'ready'`
+- Components use `useAuth()` hook to access auth context
+- HTTP layer reads tokens directly from store state via `useUserStore.getState()`
 
 ## Key Abstractions
 
-**Form Handling:**
-- Purpose: Standardized form field components
-- Examples: `TextField`, `SelectField`, `CheckboxField` in `src/components/form-field/`
-- Pattern: React Hook Form + Radix UI + Tailwind CSS wrapping
+**HTTP Interceptor Chain:**
+- Purpose: Centralize token injection, error handling, token refresh logic
+- Examples: `src/api/http-instance.ts`
+- Pattern: Request → Add Auth header, Response → Unwrap data / handle errors / retry on token expiry
 
-**UI Components:**
-- Purpose: Reusable, accessible UI primitives
-- Examples: `Button`, `Input`, `Dialog`, `Select`, `Tabs` in `src/components/ui/`
-- Pattern: Radix UI headless components with Tailwind styling
+**Zustand Store with Selectors:**
+- Purpose: Typed state management with automatic selector generation
+- Examples: `src/stores/user-store.ts` wrapped with `createSelectorFunctions()`
+- Pattern: `useUserStore.use.accessToken()` for component-level subscriptions
 
-**Store Pattern:**
-- Purpose: Type-safe global state with selectors
-- Examples: `useUserStore`, `useIntersectionStore` in `src/stores/`
-- Pattern: Zustand with `auto-zustand-selectors-hook` for granular re-render optimization
+**Layout Component Pattern:**
+- Purpose: Apply consistent wrapping (header, sidebar, footer) to nested routes
+- Examples: `src/components/layouts/main-layout/`, `src/components/layouts/admin-layout/`
+- Pattern: Layout component accepts `{children}` and wraps them with header/sidebar/footer
 
-**API Interceptor Pattern:**
-- Purpose: Cross-cutting HTTP concerns
-- Examples: Auth token attachment, error handling, refresh token retry
-- Pattern: Axios middleware with access to Zustand store state
-
-**Utility Functions:**
-- Purpose: Reusable helpers
-- Examples: `cn()` for className merging (`src/lib/utils.ts`), `range()` for pagination, formatting
-- Pattern: Pure functions, exported from `src/lib/` and `src/utils/`
+**Form Field Wrapper Components:**
+- Purpose: Pre-styled, pre-connected form inputs using React Hook Form
+- Examples: `src/components/form-fields/form-input.tsx`, `form-select.tsx`, etc.
+- Pattern: Component accepts `label`, `name`, `validation rules` and handles registration internally
 
 ## Entry Points
 
-**Server Entry:**
+**App Root:**
 - Location: `src/app/layout.tsx`
-- Triggers: Every page render
-- Responsibilities: Root HTML, metadata, global styles, provider wrapping
+- Triggers: Next.js renders page
+- Responsibilities: HTML shell, metadata, global providers setup
 
-**Client Entry:**
+**Platform Portal:**
+- Location: `src/app/(platform)/page.tsx` → `src/modules/home/index.tsx`
+- Triggers: User navigates to `/`
+- Responsibilities: Renders home module with MainLayout (header/footer)
+
+**Admin Portal:**
+- Location: `src/app/admin/page.tsx`
+- Triggers: User navigates to `/admin`
+- Responsibilities: Renders admin page with AdminLayout (sidebar/header)
+
+**Provider Layer:**
 - Location: `src/app/providers.tsx`
-- Triggers: On hydration
-- Responsibilities: Context providers (Query, Theme, Progress)
-
-**Page Entry:**
-- Location: `src/app/page.tsx` (and future route segments)
-- Triggers: Route navigation
-- Responsibilities: Import and render module for the page
-
-**API Entry:**
-- Location: `src/api/axios.ts`
-- Triggers: When component calls API
-- Responsibilities: Configure and export Axios instance with interceptors
-
-**Socket Entry:**
-- Location: `src/hooks/useSocket.ts`
-- Triggers: When component mounts
-- Responsibilities: Provide socket connection interface
+- Triggers: Root layout wraps children
+- Responsibilities: Sets up React Query, Theme, Progress tracking
 
 ## Architectural Constraints
 
-- **Rendering:** Next.js App Router with React 19 SSR + client hydration. All components in `src/components/` are client-side compatible with `'use client'` where needed.
-- **Global state:** Zustand stores in `src/stores/` are module-level singletons with localStorage persistence. State is read via hook selectors to minimize re-renders.
-- **API communication:** Single Axios instance exported from `src/api/axios.ts`. All HTTP requests go through interceptors for auth and error handling. No independent fetch calls.
-- **Real-time communication:** Single Socket.io instance in `src/lib/socket.ts`. Managed via `useSocket()` hook with event-based API.
-- **Styling:** Tailwind CSS v4 + Radix UI. No inline styles. Class utilities via `cn()` from `src/lib/utils.ts`.
-- **Type safety:** Full TypeScript strict mode. Props types in component files, shared types in `src/types/index.ts`.
-- **Module resolution:** Path alias `@/*` maps to `src/*` (tsconfig.json). All imports use `@/` prefix.
-- **Circular imports:** None detected. Stores can read from API interceptors, but API does not import stores directly to avoid circular deps.
+- **Threading:** Single-threaded event loop (browser runtime)
+- **Global state:** Zustand stores in `src/stores/` - user auth state, intersection observer state. Persisted via localStorage.
+- **Circular imports:** None detected - clear dependency hierarchy (presentation → logic → state → http → external)
+- **Client vs Server:** Components must mark `'use client'` for Zustand access, event handlers, hooks. Server components used for layouts and static rendering.
+- **Token Management:** Both HTTP instance and store read/write from Zustand. Token refresh queues failed requests to replay after refresh.
+- **Route Grouping:** Platform routes under `(platform)` group (no URL prefix), admin routes under `admin/` prefix
 
 ## Anti-Patterns
 
-### Empty Components Without Implementation
+### Using Window/Document in Server Components
 
-**What happens:** Headers, Footers, and modules contain placeholder `<div></div>` with no actual content (`src/components/layouts/MainLayout/components/Header/index.tsx`, `src/components/layouts/MainLayout/components/Footer/index.tsx`, `src/modules/Home/index.tsx`)
+**What happens:** Components without `'use client'` import browser APIs, causing hydration errors
+**Why it's wrong:** Next.js renders on server, client APIs undefined during SSR
+**Do this instead:** Mark component `'use client'` before using hooks, Zustand, event handlers, or window/localStorage
 
-**Why it's wrong:** These are critical shell components but provide no value. Page lacks structure and navigation. Teams extending the codebase don't have reference implementations.
+### Direct API Calls in Components
 
-**Do this instead:** Implement Header with navigation menu (e.g., `@radix-ui/react-navigation-menu`), Footer with links, and Home module with welcome/intro content. Use existing UI components like `Button`, `NavigationMenu`, `Separator` from `src/components/ui/`.
+**What happens:** Components import axios directly or create fetch calls without interceptors
+**Why it's wrong:** Bypasses token management, error handling, and auth refresh logic in `src/api/http-instance.ts`
+**Do this instead:** Always use `httpInstance` from `src/api/http-instance.ts` or wrap in custom hook (`src/hooks/`)
 
-### Token Refresh Stub
+### Accessing Tokens Directly from Cookies
 
-**What happens:** The `onRefreshToken()` function in `src/api/interceptors.ts` (lines 10-32) creates empty strings for accessToken and newRefreshToken. The actual refresh request is commented out (lines 18-20).
+**What happens:** Code reads tokens from `js-cookie` instead of Zustand
+**Why it's wrong:** Creates duplication, inconsistent state between cookie and store
+**Do this instead:** Use `useAuth()` hook or `useUserStore.getState()` to read tokens
 
-**Why it's wrong:** Auth cannot be refreshed. Tokens will expire and users will be logged out with no recovery path. 401 errors cannot be retried.
+## Error Handling
 
-**Do this instead:** Implement the commented-out `refreshTokenRequest()` call with a real API endpoint (e.g., POST `/auth/refresh`). Handle errors by redirecting to login. Test the full 401 → refresh → retry flow.
+**Strategy:** Layered error handling - HTTP interceptor catches API errors, components handle UI feedback
 
-### SocketService & useSocket Duplication
+**Patterns:**
+- API errors caught in `src/api/http-instance.ts:127-199` (onResponseError)
+- Error codes mapped to localization keys (`errors.code.${errorCode}`)
+- Toast notifications via `sonner` library for user feedback
+- 401 TOKEN_EXPIRED triggers automatic refresh + retry
+- Other errors rejected and propagated to component
+- Network errors logged to console with error details
 
-**What happens:** Two separate socket implementations exist: `SocketService` class in `src/lib/socket.ts` and `useSocket` hook in `src/hooks/useSocket.ts`. They both create socket instances independently, with `useSocket` creating a singleton at module load (line 20-28).
+## Cross-Cutting Concerns
 
-**Why it's wrong:** Risk of multiple socket connections. Logging via SocketService is verbose but useSocket is silent. Event subscriptions may not be in sync.
+**Logging:** Console errors in HTTP interceptor (`src/api/http-instance.ts:118`)
 
-**Do this instead:** Consolidate to one pattern. Either use SocketService class exclusively (consumed via a hook), or use the useSocket hook pattern everywhere. Pick one logging strategy.
+**Validation:** React Hook Form + Zod in form components (`src/components/form-fields/`)
 
-### Empty Stores and Incomplete Types
-
-**What happens:** `UserStore` has empty interface `IUser {}` (line 6) and empty interface `IStore {}` (line 9). IntersectionStore has `TTargetInView = ''` (empty string type).
-
-**Why it's wrong:** No type safety for user data or store updates. Code compiles but properties are unknown at runtime. Will cause issues when implementing auth endpoints.
-
-**Do this instead:** Define `IUser` with actual user shape (e.g., `{ id: string; email: string; name?: string; role: string }`). Define `IStore` as an update shape or extend `IMeQueryStore`. Update `TTargetInView` to union of actual element IDs or names.
+**Authentication:** Zustand store maintains tokens/user. HTTP interceptor injects tokens. Custom `useAuth()` hook provides auth context.
 
 ---
 
-*Architecture analysis: 2026-05-08*
+*Architecture analysis: 2026-05-09*

@@ -1,162 +1,153 @@
 # External Integrations
 
-**Analysis Date:** 2026-05-08
+**Analysis Date:** 2026-05-09
 
 ## APIs & External Services
 
 **Backend API:**
-- Service: Custom REST API
-  - Purpose: Primary backend for application data
-  - SDK/Client: Axios (`src/api/axios.ts`)
-  - Configuration: 
-    - Base URL: `NEXT_PUBLIC_API_URL` (default: http://localhost:3001)
-    - Version prefix: `NEXT_PUBLIC_API_VERSION` (default: /v1)
-    - Endpoint prefix: `NEXT_PUBLIC_API_PREFIX` (default: /api)
-  - Auth: Bearer token via Authorization header (`src/api/interceptors.ts`)
+- REST API - Primary backend service
+  - SDK/Client: Axios 1.15.2
+  - Auth: Bearer token (JWT) via Authorization header
+  - Configuration: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_API_PREFIX`, `NEXT_PUBLIC_API_VERSION`
+  - Endpoints: `merchants/refresh-token` for token refresh
 
-**Real-time Socket Service:**
-- Service: Socket.IO WebSocket server
-  - Purpose: Real-time bidirectional communication (bet placement, stats, pings)
-  - SDK/Client: socket.io-client 4.8.3
-  - Connection URL: `NEXT_PUBLIC_SOCKET_URL` (default: ws://localhost:3002)
-  - Implementation: `src/lib/socket.ts` (SocketService class), `src/hooks/useSocket.ts` (React hook)
-  - Events handled:
-    - `bet-placed` - Incoming bet placement events
-    - `stats` - Statistical updates
-    - `pong` - Heartbeat responses
-  - Transport: WebSocket protocol
+**Real-time Communication:**
+- Socket.IO Server - WebSocket-based real-time events
+  - SDK/Client: Socket.IO Client 4.8.3
+  - Configuration: `NEXT_PUBLIC_SOCKET_URL`
+  - Events: `connect`, `disconnect`, `connection-established`, `subscribed`, `unsubscribed`, `stats`, `pong`, `bet-placed` (custom events in `src/lib/socket.ts`)
+  - Implementation: `src/lib/socket.ts` (SocketService class), `src/hooks/use-socket.ts` (React hook wrapper)
 
 ## Data Storage
 
-**Databases:**
-- Not detected in frontend codebase
-- Backend database likely required but not specified
+**Client-side Storage:**
+- localStorage - Zustand state persistence
+  - User store persisted to `user-store` key
+  - Stores: `accessToken`, `refreshToken`, `user` object, authentication status
+  - Implementation: `src/stores/user-store.ts` using Zustand persist middleware
 
-**File Storage:**
-- Local filesystem only - No external file storage service detected
-- Image types supported: png, jpg, jpeg, webp, svg (in `src/utils/const.ts`)
-- Video types supported: mp4, mov, webm, ogg, wmv
-
-**Caching:**
-- TanStack React Query (v5.100.6) - Client-side caching via `src/components/providers/QueryClientProvider/`
-  - Cache stale time: 5 seconds
-  - Refetch on window focus: disabled
-  - Refetch on mount: disabled
-  - Retry on error: disabled
-- No server-side caching service detected
+**Cookies:**
+- js-cookie 3.0.5 - Cookie management
+  - Access Token: `access_token`
+  - Refresh Token: `refresh_token`
+  - Source: `src/api/http-instance.ts` (cookie enum ECookie)
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- Custom implementation with manual token management
-  - Implementation: `src/hooks/useAuth.ts`, `src/api/interceptors.ts`
-  - Token storage: Cookies via `src/lib/cookie.ts` using js-cookie 3.0.5
-  - Cookies used:
-    - `token` - Access token
-    - `refreshToken` - Refresh token
-    - `address` - User address (likely blockchain wallet)
-    - `privy-token` - Privy wallet integration token
-    - `privy-session` - Privy session token
-  - Auth approach: Bearer token in `Authorization` header
-  - Token refresh: Implemented in `src/api/interceptors.ts` on 401 errors
-  - State management: Zustand store `useUserStore` in `src/stores/UserStore.ts`
+- Custom JWT-based authentication
+  - Implementation: `src/api/http-instance.ts` (HTTP interceptors)
+  - Token refresh: Automatic token refresh on 401 TOKEN_EXPIRED error
+  - Token storage: localStorage and cookies
+  - User state: Zustand store (`src/stores/user-store.ts`)
+  - Endpoints:
+    - Login/Register: Not explicitly implemented, assumed external
+    - Token Refresh: `POST /merchants/refresh-token`
+    - 2FA Setup: `/2fa/setup` endpoint referenced
+    - Password Change: `/change-password` endpoint referenced
 
-**Third-party Auth Detected:**
-- Privy (Web3 wallet auth) - Cookie names suggest integration (`privy-token`, `privy-session`)
-  - Purpose: Likely blockchain wallet authentication
-  - Implementation details in Privy-related cookie handling in `src/lib/cookie.ts`
+**Hook Interface:**
+- `useAuth()` in `src/hooks/use-auth.ts` - Provides auth state and methods:
+  - Properties: `isLoggedIn`, `accessToken`, `refreshToken`, `user`, `status`
+  - Methods: `setUserData()`, `logout()`
+
+## HTTP Client Configuration
+
+**Axios Instance:**
+- Location: `src/api/http-instance.ts`
+- Base URL: Environment variable `NEXT_PUBLIC_API_URL`
+- Timeout: 10 seconds
+- Content-Type: application/json
+- Response Type: JSON
+
+**Request Interceptors:**
+- Automatic Authorization header injection with Bearer token from user store
+- Parameter serialization with qs library (arrayFormat: 'repeat')
+- Empty parameter cleaning (removes null, undefined, empty objects/arrays)
+
+**Response Interceptors:**
+- Automatic token refresh on 401 TOKEN_EXPIRED
+- Error message mapping to translation keys (errors.code.{errorCode})
+- Toast notification for errors (via Sonner)
+- Failed request queue management during token refresh
+- Logout and redirect to home on refresh token failure
+
+**Error Handling:**
+- Custom error response type: `BaseResponseType<null>`
+- Error codes mapped to message keys
+- Special handling for errors by endpoint:
+  - `/register` - EMAIL_EXISTED
+  - `/verify` - ACTIVE_CODE_EXPIRED, USER_ACTIVATED
+  - `/change-password` - MATCH_CURRENT_PASSWORD
+  - `/login` - NEED_TWO_FA
+  - `/2fa/setup` - UNAUTHORIZED
+- Error response structure: `{ code: number, message: string, data?: { retryAfter?, blockDuration? } }`
 
 ## Monitoring & Observability
 
 **Error Tracking:**
-- None detected
-- Errors from API passed through to Zustand store and intercepted at HTTP level
+- Console logging only - No external error tracking service detected
+- SocketService logging: Timestamp-based color-coded logs to console (`src/lib/socket.ts`)
 
 **Logs:**
-- Console logging only in `src/lib/socket.ts`
-  - Formatted with timestamps (Asia/Ho_Chi_Minh timezone)
-  - Color-coded by level (success, info, error, warn)
-- No structured logging service
-
-**Analytics:**
-- None detected
+- Browser console (console.log, console.error, console.warn)
+- SocketService uses custom log function with Vietnam timezone formatting
+- HTTP instance logs request/response errors to console
 
 ## CI/CD & Deployment
 
 **Hosting:**
-- Not specified - Frontend is standalone Next.js application
-- Can be deployed to any Node.js 20+ compatible platform
-- Configured for standalone output (`output: 'standalone'` in `next.config.ts`)
+- Next.js standalone deployment (configured via `output: 'standalone'` in next.config.ts)
+- Supports containerization and serverless deployment
 
 **CI Pipeline:**
-- GitHub Actions workflow: `.github/workflows/lint.yml`
-- Triggers: Pull requests to `main` and `dev` branches
-- Environment: Ubuntu latest, Node.js 20.17.0
-- Steps:
-  1. Checkout code
-  2. Setup Node.js and pnpm
-  3. Install dependencies
-  4. Run Biome linter
-  5. Run TypeScript type checking
-  6. Run Prettier format check
-- No deployment step configured
+- Git hooks with Husky and lint-staged
+- Pre-commit: Biome lint/format checks
+- Commit message validation: Commitlint with conventional commits
 
 ## Environment Configuration
 
-**Required env vars:**
-- `NEXT_PUBLIC_APP_URL` - Application base URL for client-side navigation
-- `NEXT_PUBLIC_API_URL` - Backend API base URL
-- `NEXT_PUBLIC_API_VERSION` - API version prefix (e.g., /v1)
-- `NEXT_PUBLIC_API_PREFIX` - API route prefix (e.g., /api)
-- `NEXT_PUBLIC_SOCKET_URL` - WebSocket server URL for real-time updates
+**Required env vars (public):**
+```env
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_API_VERSION=/v1
+NEXT_PUBLIC_API_PREFIX=/api
+NEXT_PUBLIC_SOCKET_URL=ws://localhost:3002
+```
 
 **Optional env vars:**
-- None identified (all public env vars have defaults in `src/utils/const.ts`)
+- None explicitly documented, all vars have fallback defaults
 
 **Secrets location:**
-- `.env.example` - Template file (public, no secrets)
-- `.env` - Local development (not committed, ignored by `.gitignore`)
-- No secrets management system detected (e.g., no Vault, Secrets Manager)
+- `.env.local` (not committed, local development only)
+- Production secrets: Managed externally (environment provided by deployment platform)
 
 ## Webhooks & Callbacks
 
 **Incoming:**
-- None detected in frontend
+- Not detected - Application consumes events via Socket.IO, not HTTP webhooks
 
 **Outgoing:**
-- None detected in frontend
-- Socket.IO events emitted via `socketService.emit()` in `src/lib/socket.ts`
+- Socket.IO events emitted:
+  - Custom events via `socketService.emit(event, data)` pattern
+  - No outgoing HTTP callbacks detected
 
-## Third-party Libraries & Services
+## Response Format Standards
 
-**Icons & Assets:**
-- Lucide React (v1.14.0) - SVG icon library
-- SVGR (v8.1.0) - SVG to React component conversion
-- Geist font (via Next.js `next/font` - referenced in README but not configured)
+**API Response Format:**
+```typescript
+{
+  code: number;           // HTTP-like status code
+  message?: string;       // Error message or code
+  data?: T;              // Response payload
+}
+```
 
-**UI/Component Libraries:**
-- Radix UI (13 component packages) - Headless, accessible components
-- Embla Carousel (v8.6.0) - Carousel/slider functionality
-- Sonner (v2.0.7) - Toast notifications
-- cmdk (v1.1.1) - Command palette
-
-**Theming:**
-- @teispace/next-themes (v0.3.2) - Theme provider for dark/light mode
-
-**Forms:**
-- react-hook-form (v7.74.0) - Form state management
-
-**Date/Time:**
-- date-fns (v4.1.0) - Modern date utility library
-- dayjs (v1.11.20) - Lightweight date library
-- react-day-picker (v9.14.0) - Date picker component
-
-**Utilities:**
-- decimal.js (v10.6.0) - Arbitrary precision decimal math (likely for financial calculations)
-- clsx (v2.1.1) - Conditional classNames
-- tailwind-merge (v3.5.0) - Merge Tailwind classes
-- vaul (v1.1.2) - Drawer primitive
+**Pagination Support:**
+- IPagination interface: `itemCount`, `totalItems`, `itemsPerPage`, `totalPages`, `currentPage`
+- IPaging interface: `page`, `limit`, `total`
 
 ---
 
-*Integration audit: 2026-05-08*
+*Integration audit: 2026-05-09*
