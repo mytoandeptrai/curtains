@@ -41,9 +41,10 @@
 - **Error handling:** Supabase errors → API returns 400/500 with `{ error: "message" }`
 
 ### Component Structure
-- **Dashboard layout:** Shared `app/admin/layout.tsx` with sidebar navigation
-  - Sidebar: Categories, Products, Leads, Bookings, Blog, Dashboard (navigation links)
-  - Main area: Page content
+- **Admin layout:** Existing `app/admin/layout.tsx` (uses `AdminLayout` component)
+  - Already has sidebar navigation structure
+  - Only update sidebar config/navigation items (Categories, Products, Leads, Bookings, Blog, Dashboard)
+  - No need to create new layout component
   - This layout wraps all admin pages
 - **CRUD forms:** Separate `ProductCreateForm` and `ProductEditForm` components (NOT shared)
   - Create form: Empty defaults, minimal initial data
@@ -93,11 +94,19 @@
 
 **Module Structure:** feature-based with containers → hooks → ui pattern
 
+**Notes:**
+- Admin sidebar already exists at `app/admin/layout.tsx` (imports `AdminLayout` component)
+- Only need to update sidebar navigation variables/config (no new layout needed)
+- Admin login page at `app/login/page.tsx` (outside admin layout, public route)
+
 ```
 src/
-├── app/admin/
-│   ├── layout.tsx (sidebar + main layout)
-│   ├── page.tsx (dashboard - import from modules)
+├── app/
+│   ├── login/
+│   │   └── page.tsx (admin login - public route, outside admin layout)
+│   ├── admin/
+│   │   ├── layout.tsx (existing AdminLayout - just update sidebar config)
+│   │   ├── page.tsx (dashboard - import from modules)
 │   ├── categories/
 │   │   ├── page.tsx (import CategoryListContainer from modules)
 │   │   ├── create/page.tsx (import CategoryCreateContainer from modules)
@@ -166,9 +175,9 @@ src/
 │       └── index.ts
 ├── components/
 │   ├── form-fields/ (demo-form.tsx + field components - reuse across modules)
-│   ├── ui/ (existing shadcn/ui components)
-│   └── admin/
-│       └── admin-sidebar.tsx (shared admin navigation)
+│   ├── layouts/
+│   │   └── admin-layout.tsx (existing - just update sidebar config/navigation)
+│   └── ui/ (existing shadcn/ui components)
 ├── lib/
 │   ├── schemas/
 │   │   ├── category.ts
