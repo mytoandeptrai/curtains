@@ -1,9 +1,18 @@
-import React from 'react'
+import { DashboardContainer } from '@/modules/dashboard';
 
-const AdminPage = () => {
+export const metadata = {
+  title: 'Admin Dashboard',
+};
+
+export default function AdminPage() {
   return (
-    <div>AdminPage</div>
-  )
-}
+    <div className='space-y-6'>
+      <div>
+        <h1 className='text-3xl font-bold'>Dashboard</h1>
+        <p className='text-gray-600'>Overview of your business</p>
+      </div>
 
-export default AdminPage
+      <DashboardContainer />
+    </div>
+  );
+}
