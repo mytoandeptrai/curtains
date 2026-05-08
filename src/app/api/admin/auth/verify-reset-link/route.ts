@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { code, password } = await request.json();
+    const { code, email, password } = await request.json();
 
-    if (!code || !password) {
-      return NextResponse.json({ error: 'Missing code or password' }, { status: 400 });
+    if (!code || !password || !email) {
+      return NextResponse.json({ error: 'Missing code, email or password' }, { status: 400 });
     }
 
     const cookieStore = await cookies();
@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
     const { error } = await supabase.auth.verifyOtp({
       type: 'recovery',
       token: code,
+      email,
     });
 
     if (error) {

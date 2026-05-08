@@ -10,7 +10,7 @@ import { useAdminAuth } from '@/hooks/use-admin-auth';
 import { useAdminAuthStore } from '@/stores/admin-auth-store';
 import { FormInput } from '@/components/form-fields/form-input';
 import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
+import { FormWrapper } from '@/components/ui/form';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,8 +46,7 @@ export default function LoginPage() {
       <div className='w-full max-w-md rounded-lg bg-white p-8 shadow-lg'>
         <h1 className='mb-6 text-2xl font-bold'>Admin Login</h1>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+        <FormWrapper form={form} onSubmit={onSubmit} className='space-y-4'>
             <FormInput
               control={form.control}
               name='email'
@@ -69,8 +68,7 @@ export default function LoginPage() {
             <Button type='submit' disabled={isLoading} className='w-full'>
               {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </Button>
-          </form>
-        </Form>
+        </FormWrapper>
 
         <p className='mt-4 text-center text-sm text-gray-600'>
           <a href='#' className='text-blue-600 hover:underline'>
