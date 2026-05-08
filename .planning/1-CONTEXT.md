@@ -88,28 +88,33 @@
 ## Key Implementation Notes
 
 ### Folder Structure (Phase 1)
+
+**Naming Convention:** kebab-case for files and folders (not PascalCase)
+
+**Module Structure:** feature-based with containers → hooks → ui pattern
+
 ```
 src/
 ├── app/admin/
 │   ├── layout.tsx (sidebar + main layout)
-│   ├── page.tsx (dashboard)
+│   ├── page.tsx (dashboard - import from modules)
 │   ├── categories/
-│   │   ├── page.tsx (list)
-│   │   ├── create/page.tsx
-│   │   └── [id]/edit/page.tsx
+│   │   ├── page.tsx (import CategoryListContainer from modules)
+│   │   ├── create/page.tsx (import CategoryCreateContainer from modules)
+│   │   └── [id]/edit/page.tsx (import CategoryEditContainer from modules)
 │   ├── products/
-│   │   ├── page.tsx (list)
+│   │   ├── page.tsx
 │   │   ├── create/page.tsx
 │   │   └── [id]/edit/page.tsx
 │   ├── leads/
-│   │   ├── page.tsx (list)
+│   │   ├── page.tsx
 │   │   └── [id]/edit/page.tsx
 │   ├── bookings/
-│   │   ├── page.tsx (list)
+│   │   ├── page.tsx
 │   │   ├── create/page.tsx
 │   │   └── [id]/edit/page.tsx
 │   └── blog/
-│       ├── page.tsx (list)
+│       ├── page.tsx
 │       ├── create/page.tsx
 │       └── [id]/edit/page.tsx
 ├── app/api/admin/
@@ -120,18 +125,52 @@ src/
 │   ├── bookings/... (CRUD)
 │   ├── blog/... (CRUD)
 │   └── stats/... (dashboard statistics)
+├── modules/
+│   ├── category-management/
+│   │   ├── components/
+│   │   │   ├── category-list-ui/
+│   │   │   │   ├── index.ts
+│   │   │   │   └── category-list-ui.tsx (pure presentational)
+│   │   │   ├── category-create-ui/
+│   │   │   └── category-edit-ui/
+│   │   ├── containers/
+│   │   │   ├── index.ts
+│   │   │   ├── category-list-container.tsx
+│   │   │   ├── category-create-container.tsx
+│   │   │   └── category-edit-container.tsx
+│   │   ├── hooks/
+│   │   │   ├── index.ts
+│   │   │   ├── use-category-list.ts
+│   │   │   ├── use-category-create.ts
+│   │   │   └── use-category-edit.ts
+│   │   └── index.ts (export containers)
+│   ├── product-management/
+│   │   ├── components/ (product-list-ui, product-create-ui, product-edit-ui, image-upload-ui)
+│   │   ├── containers/
+│   │   ├── hooks/
+│   │   └── index.ts
+│   ├── lead-management/
+│   │   ├── components/
+│   │   ├── containers/
+│   │   ├── hooks/
+│   │   └── index.ts
+│   ├── booking-management/
+│   │   ├── components/
+│   │   ├── containers/
+│   │   ├── hooks/
+│   │   └── index.ts
+│   └── blog-management/
+│       ├── components/
+│       ├── containers/
+│       ├── hooks/
+│       └── index.ts
 ├── components/
-│   ├── form-fields/ (demo-form.tsx + field components exist)
-│   ├── admin/
-│   │   ├── CategoryCreateForm.tsx
-│   │   ├── CategoryEditForm.tsx
-│   │   ├── ProductCreateForm.tsx
-│   │   ├── ProductEditForm.tsx
-│   │   ├── ... (LeadEditForm, BookingCreateForm, etc.)
-│   │   └── ... (navigation, dashboard widgets)
-│   └── ui/ (existing shadcn/ui components)
+│   ├── form-fields/ (demo-form.tsx + field components - reuse across modules)
+│   ├── ui/ (existing shadcn/ui components)
+│   └── admin/
+│       └── admin-sidebar.tsx (shared admin navigation)
 ├── lib/
-│   ├── schemas/ (Zod schemas)
+│   ├── schemas/
 │   │   ├── category.ts
 │   │   ├── product.ts
 │   │   ├── lead.ts
@@ -141,7 +180,9 @@ src/
 └── types/ (TypeScript interfaces)
 ```
 
-### Form Component Pattern
+### Module Pattern Example: Product Management
+
+**Zod Schemas (shared):**
 ```typescript
 // lib/schemas/product.ts
 export const productCreateSchema = z.object({
@@ -152,34 +193,128 @@ export const productCreateSchema = z.object({
   // ... other fields
 });
 
-// components/admin/ProductCreateForm.tsx
-export function ProductCreateForm() {
-  const form = useForm({
-    resolver: zodResolver(productCreateSchema),
-    defaultValues: { /* empty defaults */ }
-  });
+export const productEditSchema = productCreateSchema;
+```
+
+**Custom Hook (containers logic extracted):**
+```typescript
+// modules/product-management/hooks/use-product-create.ts
+export function useProductCreate() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
   
-  const onSubmit = async (data) => {
-    const response = await fetch('/api/admin/products', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-    if (response.ok) {
-      toast.success('Product created');
-    } else {
-      toast.error('Failed to create product');
+  const onSubmit = async (data: z.infer<typeof productCreateSchema>) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/admin/products', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        toast.success('Product created');
+        router.push('/admin/products');
+      } else {
+        toast.error('Failed to create product');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
   
+  return { onSubmit, isLoading };
+}
+```
+
+**Container (composes hook + UI):**
+```typescript
+// modules/product-management/containers/product-create-container.tsx
+export function ProductCreateContainer() {
+  const form = useForm({
+    resolver: zodResolver(productCreateSchema),
+    defaultValues: { /* empty */ }
+  });
+  
+  const { onSubmit, isLoading } = useProductCreate();
+  
+  return (
+    <ProductCreateUI
+      form={form}
+      onSubmit={onSubmit}
+      isLoading={isLoading}
+    />
+  );
+}
+```
+
+**UI Component (presentational only):**
+```typescript
+// modules/product-management/components/product-create-ui/product-create-ui.tsx
+export function ProductCreateUI({ form, onSubmit, isLoading }) {
   return (
     <FormWrapper form={form} onSubmit={onSubmit}>
       <FormInput control={form.control} name="name" label="Name" required />
       <FormInput control={form.control} name="base_price" type="number" label="Base Price" required />
       {/* ... other fields */}
+      <Button type="submit" disabled={isLoading}>
+        {isLoading ? 'Creating...' : 'Create Product'}
+      </Button>
     </FormWrapper>
   );
 }
 ```
+
+**App page (just imports container):**
+```typescript
+// app/admin/products/create/page.tsx
+import { ProductCreateContainer } from '@/modules/product-management';
+
+export default function CreateProductPage() {
+  return <ProductCreateContainer />;
+}
+```
+
+### Module Organization Pattern
+
+Each module (category-management, product-management, etc.) follows this structure:
+
+**1. UI Components** (components/*)
+- Pure presentational components
+- Receive data via props
+- No hooks, no API calls
+- Naming: `<feature>-<variant>-ui.tsx` (e.g., `product-create-ui.tsx`)
+- Exported in `components/index.ts`
+
+**2. Custom Hooks** (hooks/*)
+- Extract logic from containers
+- Handle API calls, state management, form validation
+- Naming: `use-<feature>-<action>.ts` (e.g., `use-product-create.ts`)
+- Exported in `hooks/index.ts`
+
+**3. Containers** (containers/*)
+- Compose UI + hooks
+- Connect logic to presentational components
+- Pass data/callbacks as props
+- Naming: `<feature>-<action>-container.tsx` (e.g., `product-create-container.tsx`)
+- Exported in `containers/index.ts`
+
+**4. Module Index** (index.ts)
+```typescript
+// modules/product-management/index.ts
+export { ProductListContainer } from './containers';
+export { ProductCreateContainer } from './containers';
+export { ProductEditContainer } from './containers';
+```
+
+**5. App Pages** (app/admin/*/page.tsx)
+- Minimal - just import and render container
+- No logic, no styling
+- Example: `import { ProductListContainer } from '@/modules/product-management'`
+
+**Benefits:**
+- ✅ Easy to test (UI, hooks, containers are separate)
+- ✅ Easy to reuse (containers in multiple places)
+- ✅ Easy to scale (add new features without touching existing code)
+- ✅ Clear responsibility (each layer has one job)
 
 ### Price Calculator Pattern
 ```typescript
