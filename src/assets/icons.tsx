@@ -6,6 +6,7 @@ import github from './svg/github.svg';
 import globe from './svg/globe.svg';
 import google from './svg/google.svg';
 import microsoft from './svg/microsoft.svg';
+import NoDataIcon from './svg/no-data-icon.svg';
 import window from './svg/window.svg';
 
 const IconList = {
@@ -21,6 +22,7 @@ const IconList = {
   cloud: Cloud,
   chevronLeft: ChevronLeft,
   chevronRight: ChevronRight,
+  noData: NoDataIcon,
 };
 
 type SVGAttributes = Partial<SVGProps<SVGSVGElement>>;

@@ -1,2 +1,3 @@
-export { useIntersectionStore } from './IntersectionStore';
-export { useUserStore } from './UserStore';
+export { useIntersectionStore } from './intersection-store';
+export { useUserStore } from './user-store';
+

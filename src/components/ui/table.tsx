@@ -3,6 +3,7 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { Skeleton } from "./skeleton"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
@@ -104,13 +105,20 @@ function TableCaption({
   )
 }
 
-export {
-  Table,
-  TableHeader,
-  TableBody,
-  TableFooter,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableCaption,
+function TableLoading({ cols, rows, skeletonClassName }: { cols: number; rows: number; skeletonClassName?: string }) {
+  return Array.from({ length: rows }).map((_, index) => (
+    <TableRow key={index}>
+      {Array.from({ length: cols }).map((_, index) => (
+        <TableCell key={index}>
+          <Skeleton className={cn('h-8 w-full min-w-10', skeletonClassName)} />
+        </TableCell>
+      ))}
+    </TableRow>
+  ));
 }
+
+export {
+  Table, TableBody, TableCaption, TableCell, TableFooter,
+  TableHead, TableHeader, TableLoading, TableRow
+}
+

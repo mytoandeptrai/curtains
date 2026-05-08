@@ -6,7 +6,7 @@ import { Icons } from '@/assets/icons';
 import { cn } from '@/lib/utils';
 import type { FCC } from '@/types';
 
-import useMobile from '@/hooks/useMobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { validateFileFormat, validateFileSize } from '@/utils/common';
 import { FILE_FORMAT } from '@/utils/const';
 import { toast } from 'sonner';
@@ -70,7 +70,7 @@ const InputFile: FCC<InputFileProps> = ({
 }) => {
   const [blob, setBlob] = useState('');
   const targetRef = useRef<HTMLInputElement>(null);
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   function handleDrop(e: DragEvent<HTMLDivElement>) {
     if (disabled) return;

@@ -1,10 +1,11 @@
-import MainLayout from '@/components/layouts/MainLayout';
+import MainLayout from '@/components/layouts/main-layout';
 import { fontMono, fontSans } from '@/config/fonts';
 import { siteConfig } from '@/config/site';
 import { cn } from '@/lib/utils';
 import type { Metadata, Viewport } from 'next';
 import '../styles/globals.css';
 import Providers from './providers';
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.appUrl),
   title: siteConfig.name,
@@ -58,7 +59,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang='en'>
       <body suppressHydrationWarning className={cn('min-h-screen bg-background', fontSans.variable, fontMono.variable)}>
         <Providers>
-          <MainLayout>{children}</MainLayout>
+        {children}
         </Providers>
       </body>
     </html>

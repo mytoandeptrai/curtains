@@ -1,3 +1,4 @@
+import { LucideIcon } from 'lucide-react';
 import type { FC, PropsWithChildren, SVGProps } from 'react';
 
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
@@ -36,3 +37,29 @@ export interface IPaging {
 }
 
 export type TCommonSort = 'ASC' | 'DESC';
+
+export interface PermissionCheck {
+  permission?: string;
+  role?: string;
+  type?: string;
+}
+
+export interface NavItem {
+  title: string;
+  url: string;
+  disabled?: boolean;
+  external?: boolean;
+  shortcut?: [string, string];
+  icon?: LucideIcon;
+  label?: string;
+  description?: string;
+  isActive?: boolean;
+  items?: NavItem[];
+  access?: PermissionCheck;
+}
+
+export interface BaseResponseType<T = unknown> {
+  data?: T;
+  code: number;
+  message?: string;
+}
