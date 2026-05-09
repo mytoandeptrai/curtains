@@ -1,58 +1,58 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useGetBlogDetail, useUpdateBlogMutation } from '@/api/blog';
+import { useQueryClient } from '@tanstack/react-query';
 import type { BlogEdit } from '@/lib/schemas/blog';
+import { useMemo } from 'react';
 
-export function useBlogEdit(id: string) {
+export function useBlogEditForm(id: string) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
-  const [defaultValues, setDefaultValues] = useState<Partial<BlogEdit> | undefined>();
+  const queryClient = useQueryClient();
+  const { data, isLoading: isFetching } = useGetBlogDetail({ id });
+  const updateMutation = useUpdateBlogMutation();
 
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const response = await fetch(`/api/admin/blog/${id}`);
-        if (!response.ok) throw new Error('Failed to fetch blog post');
-
-        const data = await response.json();
-        setDefaultValues(data);
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Failed to fetch blog post';
-        toast.error(message);
-      } finally {
-        setIsFetching(false);
-      }
-    };
-
-    fetchPost();
-  }, [id]);
-
-  const onSubmit = async (data: BlogEdit) => {
-    setIsLoading(true);
+  const onSubmit = async (formData: BlogEdit) => {
     try {
-      const response = await fetch(`/api/admin/blog/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      await updateMutation.mutateAsync({
+        id,
+        title: formData.title,
+        slug: formData.slug,
+        content: formData.content,
+        seo_title: formData.seo_title || '',
+        seo_description: formData.seo_description || '',
+        status: formData.published ? 'published' : 'draft',
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update blog post');
-      }
-
+      queryClient.invalidateQueries({ queryKey: ['blogs'] });
+      queryClient.invalidateQueries({ queryKey: ['blog-detail', { id }] });
       toast.success('Blog post updated successfully');
       router.push('/admin/blog');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to update blog post';
       toast.error(message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  return { onSubmit, isLoading, isFetching, defaultValues };
+  const defaultValues = useMemo(() => {
+    if (!data?.data) return undefined;
+    return {
+      title: data.data.title,
+      slug: data.data.slug,
+      content: data.data.content,
+      excerpt: '',
+      seo_title: data.data.seo_title,
+      seo_description: data.data.seo_description,
+      seo_keywords: '',
+      published: data.data.status === 'published',
+    };
+  }, [data?.data]);
+
+  return {
+    onSubmit,
+    isPending: updateMutation.isPending,
+    isFetching,
+    defaultValues,
+  };
 }

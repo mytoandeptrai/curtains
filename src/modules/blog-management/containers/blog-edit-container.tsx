@@ -1,6 +1,6 @@
 'use client';
 
-import { useBlogEdit } from '../hooks/use-blog-edit';
+import { useBlogEditForm } from '../hooks/use-blog-edit';
 import { BlogEditUI } from '../components/blog-edit-ui/blog-edit-ui';
 
 interface BlogEditContainerProps {
@@ -8,7 +8,7 @@ interface BlogEditContainerProps {
 }
 
 export function BlogEditContainer({ id }: BlogEditContainerProps) {
-  const { onSubmit, isLoading, isFetching, defaultValues } = useBlogEdit(id);
+  const { onSubmit, isPending, isFetching, defaultValues } = useBlogEditForm(id);
 
   if (isFetching) {
     return <div className="text-muted-foreground">Loading blog post...</div>;
@@ -17,7 +17,7 @@ export function BlogEditContainer({ id }: BlogEditContainerProps) {
   return (
     <BlogEditUI
       onSubmit={onSubmit}
-      isLoading={isLoading}
+      isLoading={isPending}
       defaultValues={defaultValues}
     />
   );
