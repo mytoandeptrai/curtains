@@ -1,82 +1,105 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { useGetBookingList, type IBooking } from '@/api/bookings';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { useMemo } from 'react';
+import { type SortingState } from '@tanstack/react-table';
 
-export interface Booking {
-  id: string;
-  lead_id: string;
-  leads?: { id: string; name: string; phone: string } | null;
-  booking_date: string;
-  booking_time: string | null;
-  status: 'pending' | 'confirmed' | 'done';
-  notes: string | null;
-  created_at: string;
-}
-
-interface UseBookingListReturn {
-  data: Booking[];
-  total: number;
+interface UseBookingListContainerReturn {
+  data: IBooking[];
   isLoading: boolean;
-  error: string | null;
-  status: string;
-  setStatus: (status: string) => void;
-  offset: number;
-  setOffset: (offset: number) => void;
-  limit: number;
-  refetch: () => void;
+  isFetching: boolean;
+  tableData: {
+    data: IBooking[];
+    pagination: {
+      pageIndex: number;
+      pageSize: number;
+      pageCount: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  };
+  handlers: {
+    onPaginationChange: (page: number, pageSize: number) => void;
+    onSortingChange: (sorting: SortingState) => void;
+    onSearchChange: (search: string) => void;
+  };
 }
 
-export function useBookingList(): UseBookingListReturn {
-  const [data, setData] = useState<Booking[]>([]);
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState('');
-  const [offset, setOffset] = useState(0);
-  const limit = 20;
+export function useBookingListContainer(): UseBookingListContainerReturn {
+  const [query, setQuery] = useQueryStates({
+    page: parseAsInteger.withDefault(1),
+    pageSize: parseAsInteger.withDefault(20),
+    sortBy: parseAsString.withDefault('booking_date'),
+    orderBy: parseAsString.withDefault('desc'),
+    search: parseAsString.withDefault(''),
+    status: parseAsString.withDefault(''),
+  });
 
-  const fetchData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const params = new URLSearchParams({
-        limit: String(limit),
-        offset: String(offset),
-      });
-      if (status) params.set('status', status);
-
-      const response = await fetch(`/api/admin/bookings?${params}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch bookings');
-      }
-
-      const result = await response.json();
-      setData(result.data);
-      setTotal(result.total);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message);
-      toast.error('Failed to load bookings');
-    } finally {
-      setIsLoading(false);
+  const { data, isLoading, isFetching } = useGetBookingList(
+    {
+      page: query.page,
+      pageSize: query.pageSize,
+      sortBy: query.sortBy,
+      orderBy: query.orderBy as 'asc' | 'desc',
+      search: query.search,
+      status: query.status as 'pending' | 'confirmed' | 'done' | undefined,
+    },
+    {
+      placeholderData: (prev) => prev,
     }
-  }, [status, offset]);
+  );
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const onPaginationChange = (page: number, pageSize: number) => {
+    setQuery({
+      page,
+      pageSize,
+    });
+  };
+
+  const onSortingChange = (sorting: SortingState) => {
+    if (sorting.length > 0) {
+      setQuery({
+        sortBy: sorting[0].id,
+        orderBy: sorting[0].desc ? 'desc' : 'asc',
+      });
+    } else {
+      setQuery({
+        sortBy: 'booking_date',
+        orderBy: 'desc',
+      });
+    }
+  };
+
+  const onSearchChange = (search: string) => {
+    setQuery({
+      search,
+      page: 1,
+    });
+  };
+
+  const tableData = useMemo(() => {
+    return {
+      data: data?.data ?? [],
+      pagination: {
+        pageIndex: data?.pagination.page ?? 1,
+        pageSize: data?.pagination.pageSize ?? 20,
+        pageCount: data?.pagination.totalPages ?? 0,
+        hasNext: data?.pagination.hasNext ?? false,
+        hasPrev: data?.pagination.hasPrev ?? false,
+      },
+    };
+  }, [data]);
 
   return {
-    data,
-    total,
+    data: data?.data ?? [],
     isLoading,
-    error,
-    status,
-    setStatus,
-    offset,
-    setOffset,
-    limit,
-    refetch: fetchData,
+    isFetching,
+    tableData,
+    handlers: {
+      onPaginationChange,
+      onSortingChange,
+      onSearchChange,
+    },
   };
 }
