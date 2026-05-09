@@ -1,12 +1,12 @@
 import { BaseResponseType } from '@/types';
 import { env } from '@/utils/const';
 import axios, {
-    type AxiosError,
-    type AxiosInstance,
-    type AxiosRequestConfig,
-    type AxiosResponse,
-    type CreateAxiosDefaults,
-    type InternalAxiosRequestConfig,
+  type AxiosError,
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+  type CreateAxiosDefaults,
+  type InternalAxiosRequestConfig,
 } from 'axios';
 import qs from 'qs';
 
@@ -55,7 +55,7 @@ class HttpInstance {
   private baseURL = '';
 
   constructor(config?: CreateAxiosDefaults) {
-    this.baseURL = env.API_URL;
+    this.baseURL = env.API_URL + env.API_PREFIX;
 
     this.instance = axios.create({
       ...config,

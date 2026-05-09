@@ -10,8 +10,9 @@
 | Phase | Name | Focus | Duration | Requirements |
 |-------|------|-------|----------|--------------|
 | 1 | Admin Dashboard | Complete admin CRUD system | 4-5 weeks | AUTH, CAT, PROD, LEAD, BOOK, BLOG, STAT (39 reqs) |
-| 2 | Platform Portal v1 | Customer-facing pages + lead capture | 3-4 weeks | Product display, lead form, email, contact pages (21 reqs) |
-| 3 | Blog & SEO | Blog system, landing pages, optimization | 2-3 weeks | Blog display, SEO, landing pages (4 reqs) |
+| 2 | Platform Portal Refactor | Refactor Phase 1 admin to enterprise patterns | 1-2 weeks | All 6 admin modules refactored (no new features) |
+| 3 | Platform Portal v1 | Customer-facing pages + lead capture | 3-4 weeks | Product display, lead form, email, contact pages (21 reqs) |
+| 4 | Blog & SEO | Blog system, landing pages, optimization | 2-3 weeks | Blog display, SEO, landing pages (4 reqs) |
 
 ---
 
@@ -52,7 +53,73 @@
 
 ---
 
-## Phase 2: Platform Portal v1
+## Phase 2: Platform Portal Refactor (Planning)
+
+**Goal:** Refactor Phase 1 admin modules to establish enterprise code patterns (TanStack Query + HTTP instance, nuqs for state, data-table component, complete forms) before building Phase 3 customer-facing portal. This phase does NOT add new features — it only refactors existing admin code to follow established patterns.
+
+**Duration:** 1-2 weeks
+
+**Requirements Addressed:** All 6 admin modules (categories, products, leads, bookings, blog, dashboard) refactored to follow enterprise patterns
+
+**Key Deliverables:**
+
+**Wave 1 — API Layer (TanStack Query + HTTP Instance):**
+- `src/api/categories/` module (queries, mutations for CRUD operations)
+- `src/api/products/` module (queries, mutations for CRUD operations)
+- `src/api/leads/` module (queries, mutations for CRUD operations)
+- `src/api/bookings/` module (queries, mutations for CRUD operations)
+- `src/api/blog/` module (queries, mutations for CRUD operations)
+- `src/api/dashboard/` module (stats queries only)
+- Install `nuqs` package for URL-based state management
+
+**Wave 2 — Container Layer (nuqs + TanStack Query):**
+- All list containers refactored to use `useQueryStates` from nuqs
+- All list hooks call TanStack Query hooks from src/api/
+- All create/edit containers call TanStack Query mutations
+- All containers follow identical pattern for consistency
+
+**Wave 2 — Form Layer (Complete Fields):**
+- Category forms: name, slug, description, seoTitle, seoDescription
+- Product forms: 17 fields including rich text editor for description
+- Lead forms: customer info + status + notes
+- Booking forms: lead selection + date/time + status + notes
+- Blog forms: 7 fields including rich text editor for content
+- All rich text fields use `form-minimal-tiptap` instead of textarea
+
+**Plans:**
+- [ ] 02-01-PLAN.md — Install nuqs, create categories API module (Wave 1)
+- [ ] 02-02-PLAN.md — Create products, leads, bookings API modules (Wave 1)
+- [ ] 02-03-PLAN.md — Create blog, dashboard API modules, complete Wave 1
+- [ ] 02-04-PLAN.md — Refactor category, product containers (Wave 2)
+- [ ] 02-05-PLAN.md — Refactor lead, booking containers (Wave 2)
+- [ ] 02-06-PLAN.md — Refactor blog, dashboard containers (Wave 2)
+- [ ] 02-07-PLAN.md — Complete form field refactoring across all modules (Wave 2)
+
+**Success Criteria:**
+- All admin modules use TanStack Query + HTTP instance pattern (no useEffect + fetch)
+- All list pages use nuqs for URL-based pagination/filters/sorting
+- All tables use data-table component for rendering
+- All forms include complete schema field coverage
+- Rich text descriptions/content use form-minimal-tiptap
+- TypeScript clean (`npx tsc --noEmit` passes)
+- No breaking changes to API contracts (Phase 1 code still works)
+- Patterns established for Phase 3+ to build on
+
+**Success Metrics:**
+- ✓ 6 API modules created with TanStack Query
+- ✓ 12 containers refactored to use nuqs + TanStack Query
+- ✓ 9 form components refactored with complete fields
+- ✓ TypeScript type-check passes
+- ✓ All admin features work identically to Phase 1 (functionality preserved)
+
+**Branch Strategy:**
+- Work on `develop` branch
+- No merge to `main` yet — main stays at Phase 1 stable state
+- Phase 3 will merge develop to main after validation
+
+---
+
+## Phase 3: Platform Portal v1
 
 **Goal:** Customer-facing portal for product browsing, pricing, and lead submission
 
@@ -83,7 +150,7 @@
 - SEO metadata for all pages
 
 **Acceptance Criteria:**
-- All 21 requirements in Phase 2 marked as Complete
+- All 21 requirements in Phase 3 marked as Complete
 - Customer can complete lead submission flow
 - Confirmation emails sent successfully
 - Admin sees new leads in dashboard
@@ -92,7 +159,7 @@
 
 ---
 
-## Phase 3: Blog & SEO
+## Phase 4: Blog & SEO
 
 **Goal:** Blog system with content, SEO optimization, and landing pages
 
@@ -121,11 +188,11 @@
 - Meta tag management across all pages
 
 **Acceptance Criteria:**
-- All 4 requirements in Phase 3 marked as Complete
+- All 4 requirements in Phase 4 marked as Complete
 - Blog posts render without formatting issues
 - Sitemap contains all pages (products, blog posts, static pages)
 - robots.txt allows crawling, disallows admin
-- Landing pages rank for target keywords (future validation)
+- Landing pages ready for SEO campaigns
 - No duplicate content issues
 
 ---
@@ -143,8 +210,8 @@
 - Row Level Security for admin-only tables
 
 ### Frontend Layers
-- **Admin**: Dashboard, CRUD forms, statistics
-- **Portal**: Public pages, product display, lead capture
+- **Admin**: Dashboard, CRUD forms, statistics (Phase 1 refactored in Phase 2)
+- **Portal**: Public pages, product display, lead capture (Phase 3+)
 - **Shared**: Navigation, footer, floating buttons, common components
 
 ### Authentication
@@ -154,6 +221,12 @@
 ### Email System
 - Resend or SendGrid for transactional emails
 - Templates: customer confirmation, admin notification
+
+### Code Patterns (Phase 2 establishes)
+- **API Layer**: TanStack Query hooks for queries/mutations, HTTP instance for requests
+- **State Management**: nuqs for URL-based pagination/filters, React Query for server state
+- **Data Display**: data-table component for list pages, consistent styling
+- **Forms**: Complete field coverage, form-minimal-tiptap for rich text, Zod validation
 
 ---
 
@@ -165,13 +238,19 @@
 - ✓ Email delivery 100% success rate
 - ✓ No database errors in logs
 
-### Phase 2 (Portal)
+### Phase 2 (Refactor)
+- ✓ 6 API modules with TanStack Query
+- ✓ TypeScript clean
+- ✓ All admin features work identically to Phase 1
+- ✓ Pattern documentation via code structure
+
+### Phase 3 (Portal)
 - ✓ Lead conversion from form submission 100%
 - ✓ Page load time <3s on desktop, <5s on mobile
 - ✓ Form validation prevents invalid submissions
 - ✓ Email confirmation received by customers
 
-### Phase 3 (Blog & SEO)
+### Phase 4 (Blog & SEO)
 - ✓ All pages have meta tags
 - ✓ Sitemap includes all pages
 - ✓ No crawl errors in Google Search Console
@@ -190,16 +269,19 @@
 ### Risks & Mitigation
 | Risk | Mitigation |
 |------|-----------|
+| Phase 2 refactoring breaks Phase 1 | Plan preserves all API contracts; tests verify functionality |
+| Form field migration complexity | Incremental plan-based approach; verify each module separately |
+| TypeScript regressions | Type-check after each plan completes; no compilation errors allowed |
 | Email delivery issues | Test with multiple email providers early; set up bounce handling |
-| Complex pricing formula | Build calculator in Phase 1 → test thoroughly before Phase 2 |
+| Complex pricing formula | Already tested in Phase 1; Pattern 2 only refactors, doesn't change logic |
 | Image storage costs | Optimize image sizes; set storage quota in Supabase |
-| SEO time to rank | Start blog content creation in Phase 2; publish consistently |
+| SEO time to rank | Start blog content creation in Phase 3; publish consistently |
 
 ---
 
 ## Post-Roadmap (v2)
 
-After Phase 3 completion, potential future work:
+After Phase 4 completion, potential future work:
 - Multi-admin accounts with role-based permissions
 - CRM features (lead assignment, follow-up reminders)
 - Advanced analytics (Google Analytics integration)
@@ -211,4 +293,4 @@ After Phase 3 completion, potential future work:
 ---
 
 *Roadmap created: 2026-05-08*
-*Last updated: 2026-05-08 after creation*
+*Last updated: 2026-05-09 after Phase 2 planning*

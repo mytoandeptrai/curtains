@@ -63,3 +63,15 @@ export interface BaseResponseType<T = unknown> {
   code: number;
   message?: string;
 }
+
+export type IPaginatedResponseType<T> = {
+  data: T;
+  pagination: {
+    hasNext: boolean;
+    hasPrev: boolean;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    totalCount: number;
+  };
+};
