@@ -1,5 +1,6 @@
 'use client';
 
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import QueryClientProvider from '@/components/providers/QueryClientProvider';
 import ThemeProvider from '@/components/providers/ThemeProvider';
 import { AppProgressBar as ProgressBar } from 'next-nprogress-bar';
@@ -11,12 +12,14 @@ export interface ProvidersProps {
 
 function Providers({ children }: ProvidersProps) {
   return (
-    <QueryClientProvider>
-      <ThemeProvider>
-        <>{children}</>
-        <ProgressBar height='4px' color='#a12d23' options={{ showSpinner: false }} shallowRouting />
-      </ThemeProvider>
-    </QueryClientProvider>
+    <NuqsAdapter>
+      <QueryClientProvider>
+        <ThemeProvider>
+          <>{children}</>
+          <ProgressBar height='4px' color='#a12d23' options={{ showSpinner: false }} shallowRouting />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </NuqsAdapter>
   );
 }
 
