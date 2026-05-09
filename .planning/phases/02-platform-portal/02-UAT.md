@@ -104,7 +104,9 @@ result: pending
 
 ### 22. Dashboard Auto-Refresh
 expected: On /admin dashboard, dashboard stats (leads, conversion rate, confirmed bookings, top products) load. Wait 60+ seconds. Stats auto-refresh without user action. Network request fires every 60 seconds.
-result: pending
+result: blocked
+blocked_by: server
+reason: "Backend endpoint /api/admin/dashboard/stats does not exist. Backend implementation needed."
 
 ### 23. TypeScript Compilation Clean
 expected: Run `npx tsc --noEmit` in project root. Command completes with exit code 0 (no TypeScript errors).
@@ -115,9 +117,9 @@ result: pending
 total: 23
 passed: 0
 issues: 0
-pending: 23
+pending: 22
 skipped: 0
-blocked: 0
+blocked: 1
 
 ## Gaps
 
