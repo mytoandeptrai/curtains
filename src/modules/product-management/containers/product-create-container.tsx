@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
 import { useProductCreate } from '../hooks/use-product-create';
+import { useGetCategoryList } from '@/api/categories';
 import { ProductCreateUI } from '../components/product-create-ui/product-create-ui';
 
 interface CategoryOption {
@@ -12,27 +11,12 @@ interface CategoryOption {
 
 export function ProductCreateContainer() {
   const { onSubmit, isLoading } = useProductCreate();
-  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([]);
+  const { data: categoriesResponse } = useGetCategoryList({ page: 1, pageSize: 100 });
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/admin/categories?limit=100');
-        if (response.ok) {
-          const data = await response.json();
-          const options = (data.data || []).map((c: { id: string; name: string }) => ({
-            value: c.id,
-            label: c.name,
-          }));
-          setCategoryOptions(options);
-        }
-      } catch {
-        toast.error('Failed to load categories');
-      }
-    };
-
-    fetchCategories();
-  }, []);
+  const categoryOptions: CategoryOption[] = (categoriesResponse?.data || []).map((c: { id: string; name: string }) => ({
+    value: c.id,
+    label: c.name,
+  }));
 
   return (
     <ProductCreateUI

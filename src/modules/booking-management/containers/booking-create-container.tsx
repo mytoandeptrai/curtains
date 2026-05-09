@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { useBookingCreateForm } from '../hooks/use-booking-create';
+import { useGetLeadList } from '@/api/leads';
 import { BookingCreateUI } from '../components/booking-create-ui/booking-create-ui';
 
 interface LeadOption {
@@ -12,27 +11,12 @@ interface LeadOption {
 
 export function BookingCreateContainer() {
   const { onSubmit, isPending } = useBookingCreateForm();
-  const [leadOptions, setLeadOptions] = useState<LeadOption[]>([]);
+  const { data: leadsResponse } = useGetLeadList({ page: 1, pageSize: 100 });
 
-  useEffect(() => {
-    const fetchLeads = async () => {
-      try {
-        const response = await fetch('/api/admin/leads?limit=100');
-        if (response.ok) {
-          const data = await response.json();
-          const options = (data.data || []).map((l: { id: string; customer_name: string }) => ({
-            value: l.id,
-            label: l.customer_name,
-          }));
-          setLeadOptions(options);
-        }
-      } catch {
-        toast.error('Failed to load leads');
-      }
-    };
-
-    fetchLeads();
-  }, []);
+  const leadOptions: LeadOption[] = (leadsResponse?.data || []).map((l: { id: string; customer_name: string }) => ({
+    value: l.id,
+    label: l.customer_name,
+  }));
 
   return (
     <BookingCreateUI

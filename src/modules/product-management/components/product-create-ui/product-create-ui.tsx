@@ -1,13 +1,13 @@
 'use client';
 
+import { FormCheckbox } from '@/components/form-fields/form-checkbox';
+import { FormInput } from '@/components/form-fields/form-input';
+import { FormSelect } from '@/components/form-fields/form-select';
+import { FormTextarea } from '@/components/form-fields/form-textarea';
 import { Button } from '@/components/ui/button';
 import { FormWrapper } from '@/components/ui/form';
-import { FormInput } from '@/components/form-fields/form-input';
-import { FormTextarea } from '@/components/form-fields/form-textarea';
-import { FormSelect } from '@/components/form-fields/form-select';
-import { FormCheckbox } from '@/components/form-fields/form-checkbox';
-import { productCreateSchema } from '@/lib/schemas/product';
 import type { ProductCreate } from '@/lib/schemas/product';
+import { productCreateSchema } from '@/lib/schemas/product';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
