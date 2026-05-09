@@ -5,6 +5,13 @@ import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useMemo } from 'react';
 import { type SortingState } from '@tanstack/react-table';
 
+// Legacy export for backward compatibility with old UI components
+export interface Lead extends ILead {
+  name?: string;
+  phone?: string;
+  products?: { id: string; name: string } | null;
+}
+
 interface UseLeadListContainerReturn {
   data: ILead[];
   isLoading: boolean;

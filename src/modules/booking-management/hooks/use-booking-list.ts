@@ -5,6 +5,11 @@ import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useMemo } from 'react';
 import { type SortingState } from '@tanstack/react-table';
 
+// Legacy export for backward compatibility with old UI components
+export interface Booking extends IBooking {
+  leads?: { id: string; name: string; phone: string } | null;
+}
+
 interface UseBookingListContainerReturn {
   data: IBooking[];
   isLoading: boolean;

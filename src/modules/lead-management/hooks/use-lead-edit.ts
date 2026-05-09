@@ -12,11 +12,12 @@ export function useLeadEdit(id: string) {
   const { data: leadData, isLoading: isFetching } = useGetLeadDetail({ id });
   const updateMutation = useUpdateLeadMutation();
 
+  // Map new API fields to old schema fields for backward compatibility with existing UI
   const defaultValues: Partial<LeadEdit> | undefined = leadData?.data
     ? {
-        customer_name: leadData.data.customer_name,
-        customer_email: leadData.data.customer_email,
-        customer_phone: leadData.data.customer_phone,
+        name: leadData.data.customer_name,
+        phone: leadData.data.customer_phone,
+        address: '',
         status: leadData.data.status,
         notes: leadData.data.notes,
       }
@@ -26,10 +27,10 @@ export function useLeadEdit(id: string) {
     try {
       await updateMutation.mutateAsync({
         id,
-        customer_name: data.customer_name,
-        customer_email: data.customer_email,
-        customer_phone: data.customer_phone,
-        product_id: data.product_id,
+        customer_name: data.name,
+        customer_email: '', // Form doesn't have email field
+        customer_phone: data.phone,
+        product_id: '', // Form doesn't have product_id field
         status: data.status,
         notes: data.notes,
       });
