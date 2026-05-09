@@ -6,10 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import type { Product } from '../../hooks/use-product-list';
+import type { IProduct } from '@/api/products';
 
 interface ProductListUIProps {
-  products: Product[];
+  products: IProduct[];
   total: number;
   isLoading: boolean;
   search: string;
@@ -87,8 +87,8 @@ export function ProductListUI({
                 products.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell className='font-medium'>{product.name}</TableCell>
-                    <TableCell>{product.categories?.name ?? '—'}</TableCell>
-                    <TableCell>{product.base_price.toLocaleString('vi-VN')} ₫</TableCell>
+                    <TableCell>{product.category ?? '—'}</TableCell>
+                    <TableCell>${product.price.toFixed(2)}</TableCell>
                     <TableCell>
                       {product.featured ? (
                         <Badge variant='default'>Featured</Badge>

@@ -1,77 +1,46 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useGetBookingDetail, useUpdateBookingMutation } from '@/api/bookings';
+import { useQueryClient } from '@tanstack/react-query';
 import type { BookingEdit } from '@/lib/schemas/booking';
 
-interface LeadOption {
-  value: string;
-  label: string;
-}
-
-export function useBookingEdit(id: string) {
+export function useBookingEditForm(id: string) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
-  const [defaultValues, setDefaultValues] = useState<Partial<BookingEdit> | undefined>();
-  const [leadOptions, setLeadOptions] = useState<LeadOption[]>([]);
+  const queryClient = useQueryClient();
+  const { data: bookingData, isLoading: isFetching } = useGetBookingDetail({ id });
+  const updateMutation = useUpdateBookingMutation();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [bookingRes, leadsRes] = await Promise.all([
-          fetch(`/api/admin/bookings/${id}`),
-          fetch('/api/admin/leads?limit=100'),
-        ]);
-
-        if (!bookingRes.ok) throw new Error('Failed to fetch booking');
-
-        const booking = await bookingRes.json();
-        setDefaultValues(booking);
-
-        if (leadsRes.ok) {
-          const leadsData = await leadsRes.json();
-          const options = (leadsData.data || []).map((l: { id: string; name: string }) => ({
-            value: l.id,
-            label: l.name,
-          }));
-          setLeadOptions(options);
-        }
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Failed to fetch booking';
-        toast.error(message);
-      } finally {
-        setIsFetching(false);
+  const defaultValues: Partial<BookingEdit> | undefined = bookingData?.data
+    ? {
+        lead_id: bookingData.data.lead_id,
+        booking_date: bookingData.data.booking_date,
+        booking_time: bookingData.data.booking_time,
+        status: bookingData.data.status,
+        notes: bookingData.data.notes,
       }
-    };
-
-    fetchData();
-  }, [id]);
+    : undefined;
 
   const onSubmit = async (data: BookingEdit) => {
-    setIsLoading(true);
     try {
-      const response = await fetch(`/api/admin/bookings/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      await updateMutation.mutateAsync({
+        id,
+        lead_id: data.lead_id,
+        booking_date: data.booking_date,
+        booking_time: data.booking_time,
+        status: data.status,
+        notes: data.notes,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update booking');
-      }
-
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
       toast.success('Booking updated successfully');
       router.push('/admin/bookings');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to update booking';
       toast.error(message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  return { onSubmit, isLoading, isFetching, defaultValues, leadOptions };
+  return { onSubmit, isLoading: updateMutation.isPending, isFetching, defaultValues };
 }

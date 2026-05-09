@@ -5,11 +5,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { DashboardStats } from '../../hooks/use-dashboard-stats';
 
 interface DashboardUIProps {
-  stats: DashboardStats | null;
+  stats: DashboardStats | null | undefined;
   isLoading: boolean;
+  isFetching?: boolean;
 }
 
-export function DashboardUI({ stats, isLoading }: DashboardUIProps) {
+export function DashboardUI({ stats, isLoading, isFetching }: DashboardUIProps) {
   if (isLoading) {
     return (
       <div className='space-y-6'>

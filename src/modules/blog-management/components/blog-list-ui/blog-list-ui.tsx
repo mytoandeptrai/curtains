@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import type { BlogPost } from '../../hooks/use-blog-list';
+import type { IBlogPost } from '@/api/blog';
+
+type BlogPost = IBlogPost;
 
 interface BlogListUIProps {
   posts: BlogPost[];
@@ -90,10 +92,10 @@ export function BlogListUI({
                     <TableCell className='font-medium'>{post.title}</TableCell>
                     <TableCell className='text-gray-600'>{post.slug}</TableCell>
                     <TableCell className='max-w-xs truncate text-sm text-gray-500'>
-                      {post.excerpt ?? '—'}
+                      {'—'}
                     </TableCell>
                     <TableCell>
-                      {post.published ? (
+                      {post.status === 'published' ? (
                         <Badge variant='default'>Published</Badge>
                       ) : (
                         <Badge variant='secondary'>Draft</Badge>

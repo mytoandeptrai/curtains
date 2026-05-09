@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import type { Category } from '../../hooks/use-category-list';
+import type { ICategory } from '@/api/categories';
 
 interface CategoryListUIProps {
-  categories: Category[];
+  categories: ICategory[];
   total: number;
   isLoading: boolean;
   search: string;

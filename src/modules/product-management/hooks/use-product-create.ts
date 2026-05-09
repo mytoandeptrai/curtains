@@ -1,37 +1,47 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useCreateProductMutation } from '@/api/products';
+import { useQueryClient } from '@tanstack/react-query';
 import type { ProductCreate } from '@/lib/schemas/product';
 
 export function useProductCreate() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const createMutation = useCreateProductMutation();
 
   const onSubmit = async (data: ProductCreate) => {
-    setIsLoading(true);
     try {
-      const response = await fetch('/api/admin/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      await createMutation.mutateAsync({
+        name: data.name,
+        sku: data.sku,
+        slug: data.slug,
+        description: data.description,
+        price: data.price,
+        salePrice: data.salePrice,
+        stockQuantity: data.stockQuantity,
+        unit: data.unit,
+        color: data.color,
+        material: data.material,
+        finish: data.finish,
+        category: data.category_id,
+        featured: data.featured,
+        variants: data.variants,
+        imageUrl: data.imageUrl,
+        images: data.images,
+        metaTitle: data.metaTitle,
+        metaDescription: data.metaDescription,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create product');
-      }
-
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success('Product created successfully');
       router.push('/admin/products');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to create product';
       toast.error(message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  return { onSubmit, isLoading };
+  return { onSubmit, isLoading: createMutation.isPending };
 }

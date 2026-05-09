@@ -1,24 +1,36 @@
 'use client';
 
-import { ProductListUI } from '../components/product-list-ui/product-list-ui';
-import { useProductList } from '../hooks/use-product-list';
+import { useMemo } from 'react';
+import { DataTable } from '@/components/ui/data-table';
+import { useProductListContainer } from '../hooks/use-product-list';
+import { createColumns } from '../components/product-list-ui/create-columns';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export function ProductListContainer() {
-  const { data, total, isLoading, search, setSearch, featured, setFeatured, offset, setOffset, limit } =
-    useProductList();
+  const { data, isLoading, isFetching, tableData, handlers } = useProductListContainer();
+  const columns = useMemo(() => createColumns({}), []);
 
   return (
-    <ProductListUI
-      products={data}
-      total={total}
-      isLoading={isLoading}
-      search={search}
-      onSearchChange={setSearch}
-      featured={featured}
-      onFeaturedChange={setFeatured}
-      offset={offset}
-      limit={limit}
-      onOffsetChange={setOffset}
-    />
+    <div className='space-y-4'>
+      <div className='flex items-center justify-between'>
+        <Input
+          placeholder='Search products...'
+          onChange={(e) => handlers.onSearchChange(e.target.value)}
+          className='max-w-xs'
+        />
+        <Button>Add Product</Button>
+      </div>
+
+      <DataTable
+        columns={columns}
+        data={tableData.data}
+        pagination={tableData.pagination}
+        isInitialLoading={isLoading}
+        isDataFetching={isFetching}
+        onPaginationChange={handlers.onPaginationChange}
+        onSortingChange={handlers.onSortingChange}
+      />
+    </div>
   );
 }

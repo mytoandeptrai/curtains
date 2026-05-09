@@ -27,10 +27,17 @@ export function ProductCreateUI({ onSubmit, isLoading, categoryOptions }: Produc
     resolver: zodResolver(productCreateSchema),
     defaultValues: {
       name: '',
+      sku: '',
       slug: '',
       description: '',
       category_id: '',
-      base_price: 0,
+      price: 0,
+      salePrice: undefined,
+      stockQuantity: 1,
+      unit: '',
+      color: '',
+      material: '',
+      finish: '',
       featured: false,
       extras: [],
     },
@@ -76,11 +83,11 @@ export function ProductCreateUI({ onSubmit, isLoading, categoryOptions }: Produc
 
           <FormInput
             control={form.control}
-            name="base_price"
-            label="Base Price (VND/m²)"
+            name="price"
+            label="Price"
             type="number"
             placeholder="0"
-            min={0}
+            min={1}
             required
           />
         </div>

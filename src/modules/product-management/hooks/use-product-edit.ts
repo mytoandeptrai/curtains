@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useGetProductDetail, useUpdateProductMutation } from '@/api/products';
+import { useGetCategoryList } from '@/api/categories';
+import { useQueryClient } from '@tanstack/react-query';
 import type { ProductEdit } from '@/lib/schemas/product';
 
 interface CategoryOption {
@@ -12,66 +14,73 @@ interface CategoryOption {
 
 export function useProductEdit(id: string) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
-  const [defaultValues, setDefaultValues] = useState<Partial<ProductEdit> | undefined>();
-  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([]);
+  const queryClient = useQueryClient();
+  const { data: productData, isLoading: isFetching } = useGetProductDetail({ id });
+  const { data: categoriesData } = useGetCategoryList({ page: 1, pageSize: 100 });
+  const updateMutation = useUpdateProductMutation();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [productRes, categoriesRes] = await Promise.all([
-          fetch(`/api/admin/products/${id}`),
-          fetch('/api/admin/categories?limit=100'),
-        ]);
-
-        if (!productRes.ok) throw new Error('Failed to fetch product');
-
-        const product = await productRes.json();
-        setDefaultValues(product);
-
-        if (categoriesRes.ok) {
-          const categoriesData = await categoriesRes.json();
-          const options = (categoriesData.data || []).map((c: { id: string; name: string }) => ({
-            value: c.id,
-            label: c.name,
-          }));
-          setCategoryOptions(options);
-        }
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Failed to fetch product';
-        toast.error(message);
-      } finally {
-        setIsFetching(false);
+  const defaultValues: Partial<ProductEdit> | undefined = productData?.data
+    ? {
+        name: productData.data.name,
+        sku: (productData.data as any).sku || '',
+        slug: productData.data.slug,
+        description: productData.data.description,
+        price: (productData.data as any).price || 0,
+        salePrice: (productData.data as any).salePrice,
+        stockQuantity: (productData.data as any).stockQuantity || 1,
+        unit: (productData.data as any).unit || '',
+        color: (productData.data as any).color || '',
+        material: (productData.data as any).material || '',
+        finish: (productData.data as any).finish || '',
+        category_id: (productData.data as any).category,
+        featured: productData.data.featured,
+        variants: (productData.data as any).variants,
+        imageUrl: (productData.data as any).imageUrl,
+        images: (productData.data as any).images,
+        metaTitle: (productData.data as any).metaTitle,
+        metaDescription: (productData.data as any).metaDescription,
       }
-    };
+    : undefined;
 
-    fetchData();
-  }, [id]);
+  const categoryOptions: CategoryOption[] = categoriesData?.data
+    ? categoriesData.data.map((c: any) => ({
+        value: c.id,
+        label: c.name,
+      }))
+    : [];
 
   const onSubmit = async (data: ProductEdit) => {
-    setIsLoading(true);
     try {
-      const response = await fetch(`/api/admin/products/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      await updateMutation.mutateAsync({
+        id,
+        name: data.name,
+        sku: data.sku,
+        slug: data.slug,
+        description: data.description,
+        price: data.price,
+        salePrice: data.salePrice,
+        stockQuantity: data.stockQuantity,
+        unit: data.unit,
+        color: data.color,
+        material: data.material,
+        finish: data.finish,
+        category: data.category_id,
+        featured: data.featured,
+        variants: data.variants,
+        imageUrl: data.imageUrl,
+        images: data.images,
+        metaTitle: data.metaTitle,
+        metaDescription: data.metaDescription,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update product');
-      }
-
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success('Product updated successfully');
       router.push('/admin/products');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to update product';
       toast.error(message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  return { onSubmit, isLoading, isFetching, defaultValues, categoryOptions };
+  return { onSubmit, isLoading: updateMutation.isPending, isFetching, defaultValues, categoryOptions };
 }

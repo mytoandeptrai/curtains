@@ -1,37 +1,35 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useCreateBlogMutation } from '@/api/blog';
+import { useQueryClient } from '@tanstack/react-query';
 import type { BlogCreate } from '@/lib/schemas/blog';
 
-export function useBlogCreate() {
+export function useBlogCreateForm() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const createMutation = useCreateBlogMutation();
 
   const onSubmit = async (data: BlogCreate) => {
-    setIsLoading(true);
     try {
-      const response = await fetch('/api/admin/blog', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      await createMutation.mutateAsync({
+        title: data.title,
+        slug: data.slug,
+        content: data.content,
+        seo_title: data.seo_title || '',
+        seo_description: data.seo_description || '',
+        status: data.published ? 'published' : 'draft',
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create blog post');
-      }
-
+      queryClient.invalidateQueries({ queryKey: ['blogs'] });
       toast.success('Blog post created successfully');
       router.push('/admin/blog');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to create blog post';
       toast.error(message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  return { onSubmit, isLoading };
+  return { onSubmit, isPending: createMutation.isPending };
 }

@@ -1,24 +1,36 @@
 'use client';
 
-import { LeadListUI } from '../components/lead-list-ui/lead-list-ui';
-import { useLeadList } from '../hooks/use-lead-list';
+import { useMemo } from 'react';
+import { DataTable } from '@/components/ui/data-table';
+import { useLeadListContainer } from '../hooks/use-lead-list';
+import { createColumns } from '../components/lead-list-ui/create-columns';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export function LeadListContainer() {
-  const { data, total, isLoading, search, setSearch, status, setStatus, offset, setOffset, limit } =
-    useLeadList();
+  const { data, isLoading, isFetching, tableData, handlers } = useLeadListContainer();
+  const columns = useMemo(() => createColumns({}), []);
 
   return (
-    <LeadListUI
-      leads={data}
-      total={total}
-      isLoading={isLoading}
-      search={search}
-      onSearchChange={setSearch}
-      status={status}
-      onStatusChange={setStatus}
-      offset={offset}
-      limit={limit}
-      onOffsetChange={setOffset}
-    />
+    <div className='space-y-4'>
+      <div className='flex items-center justify-between'>
+        <Input
+          placeholder='Search leads...'
+          onChange={(e) => handlers.onSearchChange(e.target.value)}
+          className='max-w-xs'
+        />
+        <Button>Add Lead</Button>
+      </div>
+
+      <DataTable
+        columns={columns}
+        data={tableData.data}
+        pagination={tableData.pagination}
+        isInitialLoading={isLoading}
+        isDataFetching={isFetching}
+        onPaginationChange={handlers.onPaginationChange}
+        onSortingChange={handlers.onSortingChange}
+      />
+    </div>
   );
 }

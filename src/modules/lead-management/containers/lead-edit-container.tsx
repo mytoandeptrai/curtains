@@ -8,7 +8,7 @@ interface LeadEditContainerProps {
 }
 
 export function LeadEditContainer({ id }: LeadEditContainerProps) {
-  const { onSubmit, isLoading, isFetching, defaultValues, leadMeta } = useLeadEdit(id);
+  const { onSubmit, isLoading, isFetching, defaultValues } = useLeadEdit(id);
 
   if (isFetching) {
     return <div className="text-muted-foreground">Loading lead...</div>;
@@ -19,9 +19,6 @@ export function LeadEditContainer({ id }: LeadEditContainerProps) {
       onSubmit={onSubmit}
       isLoading={isLoading}
       defaultValues={defaultValues}
-      estimatedPrice={leadMeta.estimatedPrice}
-      productName={leadMeta.productName}
-      createdAt={leadMeta.createdAt}
     />
   );
 }
