@@ -3,13 +3,25 @@
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useCreateBookingMutation } from '@/api/bookings';
+import { useGetLeadList } from '@/api/leads';
 import { useQueryClient } from '@tanstack/react-query';
 import type { BookingCreate } from '@/lib/schemas/booking';
+
+interface LeadOption {
+  value: string;
+  label: string;
+}
 
 export function useBookingCreateForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const createMutation = useCreateBookingMutation();
+  const { data: leadsResponse } = useGetLeadList({ page: 1, pageSize: 100 });
+
+  const leadOptions: LeadOption[] = (leadsResponse?.data || []).map((l: { id: string; customer_name: string }) => ({
+    value: l.id,
+    label: l.customer_name,
+  }));
 
   const onSubmit = async (data: BookingCreate) => {
     try {
@@ -30,5 +42,5 @@ export function useBookingCreateForm() {
     }
   };
 
-  return { onSubmit, isPending: createMutation.isPending };
+  return { onSubmit, isPending: createMutation.isPending, leadOptions };
 }

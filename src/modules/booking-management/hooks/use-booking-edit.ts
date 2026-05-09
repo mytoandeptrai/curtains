@@ -3,14 +3,26 @@
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useGetBookingDetail, useUpdateBookingMutation } from '@/api/bookings';
+import { useGetLeadList } from '@/api/leads';
 import { useQueryClient } from '@tanstack/react-query';
 import type { BookingEdit } from '@/lib/schemas/booking';
+
+interface LeadOption {
+  value: string;
+  label: string;
+}
 
 export function useBookingEditForm(id: string) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: bookingData, isLoading: isFetching } = useGetBookingDetail({ id });
+  const { data: leadsResponse } = useGetLeadList({ page: 1, pageSize: 100 });
   const updateMutation = useUpdateBookingMutation();
+
+  const leadOptions: LeadOption[] = (leadsResponse?.data || []).map((l: { id: string; customer_name: string }) => ({
+    value: l.id,
+    label: l.customer_name,
+  }));
 
   const defaultValues: Partial<BookingEdit> | undefined = bookingData?.data
     ? {
@@ -42,5 +54,5 @@ export function useBookingEditForm(id: string) {
     }
   };
 
-  return { onSubmit, isLoading: updateMutation.isPending, isFetching, defaultValues };
+  return { onSubmit, isLoading: updateMutation.isPending, isFetching, defaultValues, leadOptions };
 }
