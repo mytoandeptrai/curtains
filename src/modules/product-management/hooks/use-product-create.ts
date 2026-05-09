@@ -15,11 +15,23 @@ export function useProductCreate() {
     try {
       await createMutation.mutateAsync({
         name: data.name,
+        sku: data.sku,
         slug: data.slug,
         description: data.description,
-        price: data.base_price,
+        price: data.price,
+        salePrice: data.salePrice,
+        stockQuantity: data.stockQuantity,
+        unit: data.unit,
+        color: data.color,
+        material: data.material,
+        finish: data.finish,
         category: data.category_id,
         featured: data.featured,
+        variants: data.variants,
+        imageUrl: data.imageUrl,
+        images: data.images,
+        metaTitle: data.metaTitle,
+        metaDescription: data.metaDescription,
       });
 
       queryClient.invalidateQueries({ queryKey: ['products'] });

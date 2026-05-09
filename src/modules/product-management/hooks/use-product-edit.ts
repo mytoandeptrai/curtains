@@ -22,11 +22,23 @@ export function useProductEdit(id: string) {
   const defaultValues: Partial<ProductEdit> | undefined = productData?.data
     ? {
         name: productData.data.name,
+        sku: (productData.data as any).sku || '',
         slug: productData.data.slug,
         description: productData.data.description,
-        base_price: (productData.data as any).price,
+        price: (productData.data as any).price || 0,
+        salePrice: (productData.data as any).salePrice,
+        stockQuantity: (productData.data as any).stockQuantity || 1,
+        unit: (productData.data as any).unit || '',
+        color: (productData.data as any).color || '',
+        material: (productData.data as any).material || '',
+        finish: (productData.data as any).finish || '',
         category_id: (productData.data as any).category,
         featured: productData.data.featured,
+        variants: (productData.data as any).variants,
+        imageUrl: (productData.data as any).imageUrl,
+        images: (productData.data as any).images,
+        metaTitle: (productData.data as any).metaTitle,
+        metaDescription: (productData.data as any).metaDescription,
       }
     : undefined;
 
@@ -42,11 +54,23 @@ export function useProductEdit(id: string) {
       await updateMutation.mutateAsync({
         id,
         name: data.name,
+        sku: data.sku,
         slug: data.slug,
         description: data.description,
-        price: data.base_price,
+        price: data.price,
+        salePrice: data.salePrice,
+        stockQuantity: data.stockQuantity,
+        unit: data.unit,
+        color: data.color,
+        material: data.material,
+        finish: data.finish,
         category: data.category_id,
         featured: data.featured,
+        variants: data.variants,
+        imageUrl: data.imageUrl,
+        images: data.images,
+        metaTitle: data.metaTitle,
+        metaDescription: data.metaDescription,
       });
 
       queryClient.invalidateQueries({ queryKey: ['products'] });
