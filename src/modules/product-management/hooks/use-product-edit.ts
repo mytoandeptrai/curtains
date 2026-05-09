@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useGetProductDetail, useUpdateProductMutation } from '@/api/products';
+import { useGetCategoryList } from '@/api/categories';
+import { useQueryClient } from '@tanstack/react-query';
 import type { ProductEdit } from '@/lib/schemas/product';
 
 interface CategoryOption {
@@ -12,66 +14,49 @@ interface CategoryOption {
 
 export function useProductEdit(id: string) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
-  const [defaultValues, setDefaultValues] = useState<Partial<ProductEdit> | undefined>();
-  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([]);
+  const queryClient = useQueryClient();
+  const { data: productData, isLoading: isFetching } = useGetProductDetail({ id });
+  const { data: categoriesData } = useGetCategoryList({ page: 1, pageSize: 100 });
+  const updateMutation = useUpdateProductMutation();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [productRes, categoriesRes] = await Promise.all([
-          fetch(`/api/admin/products/${id}`),
-          fetch('/api/admin/categories?limit=100'),
-        ]);
-
-        if (!productRes.ok) throw new Error('Failed to fetch product');
-
-        const product = await productRes.json();
-        setDefaultValues(product);
-
-        if (categoriesRes.ok) {
-          const categoriesData = await categoriesRes.json();
-          const options = (categoriesData.data || []).map((c: { id: string; name: string }) => ({
-            value: c.id,
-            label: c.name,
-          }));
-          setCategoryOptions(options);
-        }
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Failed to fetch product';
-        toast.error(message);
-      } finally {
-        setIsFetching(false);
+  const defaultValues: Partial<ProductEdit> | undefined = productData?.data
+    ? {
+        name: productData.data.name,
+        slug: productData.data.slug,
+        description: productData.data.description,
+        base_price: (productData.data as any).price,
+        category_id: (productData.data as any).category,
+        featured: productData.data.featured,
       }
-    };
+    : undefined;
 
-    fetchData();
-  }, [id]);
+  const categoryOptions: CategoryOption[] = categoriesData?.data
+    ? categoriesData.data.map((c: any) => ({
+        value: c.id,
+        label: c.name,
+      }))
+    : [];
 
   const onSubmit = async (data: ProductEdit) => {
-    setIsLoading(true);
     try {
-      const response = await fetch(`/api/admin/products/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      await updateMutation.mutateAsync({
+        id,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        price: data.base_price,
+        category: data.category_id,
+        featured: data.featured,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update product');
-      }
-
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success('Product updated successfully');
       router.push('/admin/products');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to update product';
       toast.error(message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  return { onSubmit, isLoading, isFetching, defaultValues, categoryOptions };
+  return { onSubmit, isLoading: updateMutation.isPending, isFetching, defaultValues, categoryOptions };
 }
