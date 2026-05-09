@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
+import { FormWrapper } from '@/components/ui/form';
 import { FormInput } from '@/components/form-fields/form-input';
 import { FormTextarea } from '@/components/form-fields/form-textarea';
 import { FormCheckbox } from '@/components/form-fields/form-checkbox';
@@ -16,7 +16,7 @@ interface BlogCreateUIProps {
 }
 
 export function BlogCreateUI({ onSubmit, isLoading }: BlogCreateUIProps) {
-  const form = useForm<BlogCreate>({
+  const form = useForm({
     resolver: zodResolver(blogCreateSchema),
     defaultValues: {
       title: '',
@@ -31,8 +31,7 @@ export function BlogCreateUI({ onSubmit, isLoading }: BlogCreateUIProps) {
   });
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <FormWrapper form={form} onSubmit={onSubmit} className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2">
           <FormInput
             control={form.control}
@@ -108,7 +107,6 @@ export function BlogCreateUI({ onSubmit, isLoading }: BlogCreateUIProps) {
             {isLoading ? 'Creating...' : 'Create Post'}
           </Button>
         </div>
-      </form>
-    </Form>
+    </FormWrapper>
   );
 }

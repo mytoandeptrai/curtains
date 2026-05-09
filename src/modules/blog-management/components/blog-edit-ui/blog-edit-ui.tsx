@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
+import { FormWrapper } from '@/components/ui/form';
 import { FormInput } from '@/components/form-fields/form-input';
 import { FormTextarea } from '@/components/form-fields/form-textarea';
 import { FormCheckbox } from '@/components/form-fields/form-checkbox';
@@ -40,8 +40,7 @@ export function BlogEditUI({ onSubmit, isLoading, defaultValues }: BlogEditUIPro
   }, [defaultValues, form]);
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <FormWrapper form={form} onSubmit={onSubmit} className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2">
           <FormInput
             control={form.control}
@@ -117,7 +116,6 @@ export function BlogEditUI({ onSubmit, isLoading, defaultValues }: BlogEditUIPro
             {isLoading ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
-      </form>
-    </Form>
+    </FormWrapper>
   );
 }

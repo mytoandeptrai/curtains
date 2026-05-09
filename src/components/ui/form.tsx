@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import type { FCC } from "@/types";
 
 export interface FormWrapperProps<T extends FieldValues> {
-  form: UseFormReturn<T, any>;
+  form: UseFormReturn<T, any, any>;
   onSubmit: SubmitHandler<T>;
   children?: React.ReactNode;
   formId?: string;

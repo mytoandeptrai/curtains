@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
+import { FormWrapper } from '@/components/ui/form';
 import { FormInput } from '@/components/form-fields/form-input';
 import { FormTextarea } from '@/components/form-fields/form-textarea';
 import { categoryCreateSchema } from '@/lib/schemas/category';
@@ -27,8 +27,7 @@ export function CategoryCreateUI({ onSubmit, isLoading }: CategoryCreateUIProps)
   });
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <FormWrapper form={form} onSubmit={onSubmit} className="space-y-6">
         <FormInput
           control={form.control}
           name="name"
@@ -73,7 +72,6 @@ export function CategoryCreateUI({ onSubmit, isLoading }: CategoryCreateUIProps)
             {isLoading ? 'Creating...' : 'Create Category'}
           </Button>
         </div>
-      </form>
-    </Form>
+    </FormWrapper>
   );
 }

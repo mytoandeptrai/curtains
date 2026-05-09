@@ -12,7 +12,7 @@ export const productBaseSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   category_id: z.string().uuid('Invalid category'),
   base_price: z.number().min(0, 'Base price must be 0 or greater'),
-  featured: z.boolean().default(false),
+  featured: z.boolean(),
   extras: z.array(productExtraSchema).optional(),
 });
 

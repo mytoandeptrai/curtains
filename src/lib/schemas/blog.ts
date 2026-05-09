@@ -8,7 +8,7 @@ export const blogBaseSchema = z.object({
   seo_title: z.string().max(100).optional().or(z.literal('')),
   seo_description: z.string().max(160).optional().or(z.literal('')),
   seo_keywords: z.string().max(200).optional().or(z.literal('')),
-  published: z.boolean().default(false),
+  published: z.boolean(),
 });
 
 export const blogCreateSchema = blogBaseSchema;

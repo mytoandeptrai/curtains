@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
+import { FormWrapper } from '@/components/ui/form';
 import { FormInput } from '@/components/form-fields/form-input';
 import { FormTextarea } from '@/components/form-fields/form-textarea';
 import { FormSelect } from '@/components/form-fields/form-select';
@@ -40,8 +40,7 @@ export function BookingCreateUI({ onSubmit, isLoading, leadOptions }: BookingCre
   });
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <FormWrapper form={form} onSubmit={onSubmit} className="space-y-6">
         <FormSelect
           control={form.control}
           name="lead_id"
@@ -89,7 +88,6 @@ export function BookingCreateUI({ onSubmit, isLoading, leadOptions }: BookingCre
             {isLoading ? 'Creating...' : 'Create Booking'}
           </Button>
         </div>
-      </form>
-    </Form>
+    </FormWrapper>
   );
 }
