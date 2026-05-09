@@ -1,6 +1,6 @@
 'use client';
 
-import { useBookingEdit } from '../hooks/use-booking-edit';
+import { useBookingEditForm } from '../hooks/use-booking-edit';
 import { BookingEditUI } from '../components/booking-edit-ui/booking-edit-ui';
 
 interface BookingEditContainerProps {
@@ -8,7 +8,7 @@ interface BookingEditContainerProps {
 }
 
 export function BookingEditContainer({ id }: BookingEditContainerProps) {
-  const { onSubmit, isLoading, isFetching, defaultValues, leadOptions } = useBookingEdit(id);
+  const { onSubmit, isLoading, isFetching, defaultValues } = useBookingEditForm(id);
 
   if (isFetching) {
     return <div className="text-muted-foreground">Loading booking...</div>;
@@ -18,7 +18,6 @@ export function BookingEditContainer({ id }: BookingEditContainerProps) {
     <BookingEditUI
       onSubmit={onSubmit}
       isLoading={isLoading}
-      leadOptions={leadOptions}
       defaultValues={defaultValues}
     />
   );
