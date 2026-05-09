@@ -1,6 +1,20 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: executing
+last_updated: "2026-05-09T06:55:31.071Z"
+progress:
+  total_phases: 4
+  completed_phases: 1
+  total_plans: 13
+  completed_plans: 5
+  percent: 38
+---
+
 # Project State: Curtains
 
-**Status:** Phase 1 Complete | **Current Phase:** Phase 2 - Platform Portal
+**Status:** Executing Phase 2
 
 ## Project Reference
 
@@ -8,7 +22,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-08)
 
 **Core value:** Thu thập lead chất lượng từ khách hàng quan tâm, với tính giá realtime giúp khách hiểu rõ chi phí
 
-**Current focus:** Phase 2 - Platform Portal (customer-facing pages + lead capture)
+**Current focus:** Phase 2 — platform-portal
 
 ## Execution Timeline
 

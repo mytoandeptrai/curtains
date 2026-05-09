@@ -87,9 +87,9 @@
 - All rich text fields use `form-minimal-tiptap` instead of textarea
 
 **Plans:**
-- [ ] 02-01-PLAN.md — Install nuqs, create categories API module (Wave 1)
-- [ ] 02-02-PLAN.md — Create products, leads, bookings API modules (Wave 1)
-- [ ] 02-03-PLAN.md — Create blog, dashboard API modules, complete Wave 1
+- [x] 02-01-PLAN.md — Install nuqs, create categories API module (Wave 1)
+- [x] 02-02-PLAN.md — Create products, leads, bookings API modules (Wave 1)
+- [x] 02-03-PLAN.md — Create blog, dashboard API modules, complete Wave 1
 - [ ] 02-04-PLAN.md — Refactor category, product containers (Wave 2)
 - [ ] 02-05-PLAN.md — Refactor lead, booking containers (Wave 2)
 - [ ] 02-06-PLAN.md — Refactor blog, dashboard containers (Wave 2)
