@@ -5,6 +5,7 @@ export const blogBaseSchema = z.object({
   slug: z.string().min(1, 'Slug is required').max(200),
   content: z.string().min(1, 'Content is required'),
   excerpt: z.string().min(1, 'Excerpt is required').max(300),
+  thumbnail_url: z.string().url().optional().or(z.literal('')),
   seo_title: z.string().max(100).optional().or(z.literal('')),
   seo_description: z.string().max(160).optional().or(z.literal('')),
   seo_keywords: z.string().max(200).optional().or(z.literal('')),

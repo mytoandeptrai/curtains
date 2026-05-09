@@ -5,6 +5,7 @@ import { FormWrapper } from '@/components/ui/form';
 import { FormInput } from '@/components/form-fields/form-input';
 import { FormTextarea } from '@/components/form-fields/form-textarea';
 import { FormCheckbox } from '@/components/form-fields/form-checkbox';
+import { FormMinimalTiptap } from '@/components/form-fields/form-minimal-tiptap';
 import { blogCreateSchema } from '@/lib/schemas/blog';
 import type { BlogCreate } from '@/lib/schemas/blog';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,6 +24,7 @@ export function BlogCreateUI({ onSubmit, isLoading }: BlogCreateUIProps) {
       slug: '',
       content: '',
       excerpt: '',
+      thumbnail_url: '',
       seo_title: '',
       seo_description: '',
       seo_keywords: '',
@@ -50,13 +52,13 @@ export function BlogCreateUI({ onSubmit, isLoading }: BlogCreateUIProps) {
           />
         </div>
 
-        <FormTextarea
+        <FormMinimalTiptap
           control={form.control}
           name="content"
-          label="Content (Markdown)"
-          placeholder="Write your blog post content in markdown..."
-          config={{ rows: 12, showCharCount: false }}
+          label="Content"
+          placeholder="Write your blog post content..."
           required
+          disabled={isLoading}
         />
 
         <FormTextarea
@@ -66,6 +68,13 @@ export function BlogCreateUI({ onSubmit, isLoading }: BlogCreateUIProps) {
           placeholder="Short summary of the post (shown in listings)..."
           config={{ rows: 3, maxLength: 300, showCharCount: true }}
           required
+        />
+
+        <FormInput
+          control={form.control}
+          name="thumbnail_url"
+          label="Featured Image URL"
+          placeholder="https://example.com/image.jpg"
         />
 
         <div className="space-y-4 rounded-lg border p-4">
