@@ -1,70 +1,103 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { useGetCategoryList, type ICategory } from '@/api/categories';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { useMemo } from 'react';
+import { type SortingState } from '@tanstack/react-table';
 
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  seo_title: string;
-  seo_description: string;
-  created_at: string;
-}
-
-interface UseCategoryListReturn {
-  data: Category[];
-  total: number;
+interface UseCategoryListContainerReturn {
+  data: ICategory[];
   isLoading: boolean;
-  error: string | null;
-  search: string;
-  setSearch: (search: string) => void;
-  offset: number;
-  setOffset: (offset: number) => void;
-  limit: number;
-  refetch: () => void;
+  isFetching: boolean;
+  tableData: {
+    data: ICategory[];
+    pagination: {
+      pageIndex: number;
+      pageSize: number;
+      pageCount: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  };
+  handlers: {
+    onPaginationChange: (page: number, pageSize: number) => void;
+    onSortingChange: (sorting: SortingState) => void;
+    onSearchChange: (search: string) => void;
+  };
 }
 
-export function useCategoryList(): UseCategoryListReturn {
-  const [data, setData] = useState<Category[]>([]);
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [offset, setOffset] = useState(0);
-  const limit = 20;
+export function useCategoryListContainer(): UseCategoryListContainerReturn {
+  const [query, setQuery] = useQueryStates({
+    page: parseAsInteger.withDefault(1),
+    pageSize: parseAsInteger.withDefault(20),
+    sortBy: parseAsString.withDefault('name'),
+    orderBy: parseAsString.withDefault('asc'),
+    search: parseAsString.withDefault(''),
+  });
 
-  const fetchData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const params = new URLSearchParams({
-        limit: String(limit),
-        offset: String(offset),
-        search,
-      });
-
-      const response = await fetch(`/api/admin/categories?${params}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch categories');
-      }
-
-      const result = await response.json();
-      setData(result.data);
-      setTotal(result.total);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message);
-      toast.error('Failed to load categories');
-    } finally {
-      setIsLoading(false);
+  const { data, isLoading, isFetching } = useGetCategoryList(
+    {
+      page: query.page,
+      pageSize: query.pageSize,
+      sortBy: query.sortBy,
+      orderBy: query.orderBy as 'asc' | 'desc',
+      search: query.search,
+    },
+    {
+      placeholderData: (prev) => prev,
     }
-  }, [search, offset]);
+  );
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const onPaginationChange = (page: number, pageSize: number) => {
+    setQuery({
+      page,
+      pageSize,
+    });
+  };
 
-  return { data, total, isLoading, error, search, setSearch, offset, setOffset, limit, refetch: fetchData };
+  const onSortingChange = (sorting: SortingState) => {
+    if (sorting.length > 0) {
+      setQuery({
+        sortBy: sorting[0].id,
+        orderBy: sorting[0].desc ? 'desc' : 'asc',
+      });
+    } else {
+      setQuery({
+        sortBy: 'name',
+        orderBy: 'asc',
+      });
+    }
+  };
+
+  const onSearchChange = (search: string) => {
+    setQuery({
+      search,
+      page: 1, // Reset to page 1 when searching
+    });
+  };
+
+  const tableData = useMemo(() => {
+    return {
+      data: data?.data ?? [],
+      pagination: {
+        pageIndex: data?.pagination.page ?? 1,
+        pageSize: data?.pagination.pageSize ?? 20,
+        pageCount: data?.pagination.totalPages ?? 0,
+        hasNext: data?.pagination.hasNext ?? false,
+        hasPrev: data?.pagination.hasPrev ?? false,
+      },
+    };
+  }, [data]);
+
+  return {
+    data: data?.data ?? [],
+    isLoading,
+    isFetching,
+    tableData,
+    handlers: {
+      onPaginationChange,
+      onSortingChange,
+      onSearchChange,
+    },
+  };
 }
