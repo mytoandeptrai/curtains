@@ -66,6 +66,7 @@
     "react-dom": "19.2.5",
     "react-dropzone": "^15.0.0",
     "react-hook-form": "^7.74.0",
+    "resend": "^4.0.0",
     "react-medium-image-zoom": "^5.4.5",
     "react-number-format": "^5.4.5",
     "socket.io-client": "^4.8.3",
